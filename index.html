@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>The Notebook</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Mono:wght@300;400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+<!-- Google APIs -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0ebe2;--surface:#f7f3ed;--s2:#ede8e0;--s3:#e5dfd6;--s4:#ddd7cd;
+  --border:#d4cdc3;--b2:#c5bdb2;--b3:#b0a89c;
+  --gold:#8a6a30;--gold-d:#6b5025;--gold-l:#C8A96A;
+  --cream:#2a2520;--cream-d:#4a4540;
+  --crimson:#7A0000;--red:#B22222;
+  --text:#2a2520;--text-d:#5a5248;--text-m:#9a9088;
+  --paper:#faf7f2;--paper2:#f2ede4;--paper-line:#e0d9ce;--ink:#1c1a16;
+}
+body.dark-paper{
+  --bg:#0d0d0b;--surface:#131311;--s2:#191917;--s3:#1f1f1c;--s4:#252522;
+  --border:#222220;--b2:#2d2d29;--b3:#3a3a35;
+  --gold:#C8A96A;--gold-d:#8a7248;--gold-l:#e0c98a;
+  --cream:#ddd8ce;--cream-d:#8a8680;
+  --text:#ccc8be;--text-d:#6b6760;--text-m:#3d3d3a;
+  --paper:#1a1a16;--paper2:#141410;--paper-line:#2a2a24;--ink:#e8e4dc;
+}
+body.dark-paper .writing-paper{
+  box-shadow:0 0 0 1px var(--paper-line),0 8px 40px rgba(0,0,0,0.7);
+}
+body.dark-paper .paper-margin{
+  background:rgba(180,80,80,0.15);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh}
+
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* HEADER */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:50px;border-bottom:1px solid var(--border);
+  background:var(--surface);flex-shrink:0;z-index:200;position:relative;
+}
+.logo{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:300;font-style:italic;color:var(--gold);letter-spacing:0.04em;display:flex;align-items:center;gap:8px}
+.logo-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:0.6}
+.header-right{display:flex;align-items:center;gap:12px}
+.project-bar{display:flex;align-items:center;gap:10px}
+#proj-name{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-d);cursor:pointer;border-bottom:1px dashed var(--b3);padding-bottom:1px;transition:color 0.2s,border-color 0.2s}
+#proj-name:hover{color:var(--gold);border-color:var(--gold-d)}
+.proj-type{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-m);background:var(--s3);border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;transition:all 0.2s}
+.proj-type:hover{border-color:var(--gold-d);color:var(--gold-d)}
+.proj-type.active-type{border-color:var(--gold-d);color:var(--gold)}
+
+/* SYNC STATUS */
+.sync-bar{display:flex;align-items:center;gap:8px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-m);transition:background 0.3s;flex-shrink:0}
+.sync-dot.synced{background:#5a9a5a}
+.sync-dot.syncing{background:var(--gold);animation:pulse 1s infinite}
+.sync-dot.error{background:var(--red)}
+.sync-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.1em;color:var(--text-m);text-transform:uppercase}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.drive-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:transparent;border:1px solid var(--b2);color:var(--text-d);font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.drive-btn:hover{border-color:var(--gold-d);color:var(--gold)}
+.drive-btn.connected{border-color:#3a6a3a;color:#5a9a5a}
+.drive-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover}
+
+/* NAV */
+nav{display:flex;align-items:center;padding:0 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;height:42px;overflow-x:auto;gap:0}
+nav::-webkit-scrollbar{display:none}
+.tab{height:42px;display:flex;align-items:center;gap:7px;padding:0 18px;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-m);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;position:relative;top:1px}
+.tab:hover{color:var(--cream-d)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* MAIN */
+main{flex:1;overflow:hidden;position:relative}
+.panel{display:none;height:100%;overflow:hidden;flex-direction:column}
+.panel.active{display:flex}
+
+/* INPUTS */
+label{display:block;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-m);margin-bottom:5px}
+input[type=text],textarea,select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;font-weight:300;padding:8px 11px;outline:none;transition:border-color 0.2s;resize:none;-webkit-appearance:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--gold-d);background:var(--s3)}
+textarea{line-height:1.65}
+select option{background:var(--s3)}
+.field{margin-bottom:14px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:5px;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;border:none;outline:none}
+.btn-ghost{background:transparent;border:1px solid var(--b2);color:var(--text-d)}
+.btn-ghost:hover{border-color:var(--gold-d);color:var(--gold)}
+.btn-gold{background:var(--gold);color:var(--ink);font-weight:400}
+.btn-gold:hover{background:var(--gold-l)}
+.btn-danger{background:transparent;border:1px solid var(--crimson);color:var(--red)}
+.btn-danger:hover{background:var(--crimson);color:var(--cream)}
+.btn-sm{padding:4px 9px;font-size:9px}
+
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;font-style:italic;color:var(--cream)}
+.sec-sub{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-m);margin-top:2px}
+.divider-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-m);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.divider-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* PLANNING */
+.planning-layout{display:grid;grid-template-columns:290px 1fr;height:100%;overflow:hidden}
+.planning-sidebar{border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);padding:24px 18px}
+.planning-main{overflow-y:auto;padding:28px 32px;display:flex;flex-direction:column;gap:0}
+.act-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.act-card{background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:14px}
+.act-card-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold-d);margin-bottom:8px}
+.act-card textarea{background:transparent;border:none;padding:0;font-size:12px;min-height:70px;color:var(--text-d)}
+.notes-split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* STORYBOARD */
+.board-toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;gap:16px}
+.board-filter{display:flex;align-items:center;gap:8px}
+.filter-btn{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.12em;text-transform:uppercase;padding:5px 12px;border-radius:20px;background:transparent;border:1px solid var(--b2);color:var(--text-m);cursor:pointer;transition:all 0.2s}
+.filter-btn:hover,.filter-btn.active{border-color:var(--gold-d);color:var(--gold)}
+.board-canvas{flex:1;overflow:auto;padding:32px;background:var(--bg);background-image:radial-gradient(circle,var(--b2) 1px,transparent 1px);background-size:28px 28px}
+.board-columns{display:flex;gap:20px;min-height:100%;align-items:flex-start}
+.board-col{min-width:240px;max-width:240px}
+.col-header{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-m);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.col-label-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:7px}
+.col-cards{display:flex;flex-direction:column;gap:10px;min-height:40px}
+.scene-card{background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:14px;cursor:grab;transition:all 0.2s;position:relative;user-select:none}
+.scene-card:hover{border-color:var(--b3);box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.scene-card.dragging{opacity:0.4;cursor:grabbing}
+.card-ep{font-size:9px;font-family:'DM Mono',monospace;color:var(--gold-d);letter-spacing:0.1em;margin-bottom:5px}
+.card-title{font-size:13px;font-weight:300;color:var(--cream);margin-bottom:6px;line-height:1.35}
+.card-summary{font-size:11px;color:var(--text-d);line-height:1.5;margin-bottom:10px}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px}
+.card-tag{font-size:9px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:20px;border:1px solid var(--b2);color:var(--text-m)}
+.card-tag.char{border-color:#4a3a6a;color:#9a7ab8}
+.card-tag.loc{border-color:#2a4a3a;color:#5a9a78}
+.card-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);opacity:0;transition:opacity 0.2s}
+.scene-card:hover .card-actions{opacity:1}
+.add-card-btn{background:transparent;border:1px dashed var(--b2);border-radius:7px;padding:12px;color:var(--text-m);cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.08em;text-align:center;transition:all 0.2s;width:100%}
+.add-card-btn:hover{border-color:var(--gold-d);color:var(--gold)}
+
+/* EPISODES */
+.ep-layout{display:grid;grid-template-columns:260px 1fr;height:100%;overflow:hidden}
+.ep-sidebar{border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);display:flex;flex-direction:column}
+.ep-sidebar-header{padding:18px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.ep-items{flex:1;overflow-y:auto;padding:8px}
+.ep-item{padding:12px 12px;border-radius:6px;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;gap:10px}
+.ep-item:hover{background:var(--s2)}
+.ep-item.active{background:var(--s3)}
+.ep-num{width:30px;height:30px;border-radius:50%;background:var(--s4);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'DM Mono',monospace;color:var(--gold-d);flex-shrink:0}
+.ep-info{flex:1;min-width:0}
+.ep-name{font-size:12px;font-weight:300;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ep-meta{font-size:9px;font-family:'DM Mono',monospace;color:var(--text-m);margin-top:2px}
+.ep-detail{overflow-y:auto;padding:28px 32px}
+
+/* CHARACTERS / LOCATIONS */
+.dashboard-layout{display:grid;grid-template-columns:250px 1fr;height:100%;overflow:hidden}
+.entity-list{border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);display:flex;flex-direction:column}
+.entity-list-header{padding:18px 14px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.entity-items{flex:1;overflow-y:auto;padding:8px}
+.entity-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;cursor:pointer;transition:background 0.15s}
+.entity-item:hover{background:var(--s2)}
+.entity-item.active{background:var(--s3)}
+.entity-avatar{width:34px;height:34px;border-radius:50%;background:var(--s3);border:1px solid var(--b2);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold-d)}
+.entity-avatar img{width:100%;height:100%;object-fit:cover}
+.entity-info{flex:1;min-width:0}
+.entity-name{font-size:12px;font-weight:300;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.entity-sub{font-size:9px;font-family:'DM Mono',monospace;color:var(--text-m);margin-top:1px}
+.entity-detail{overflow-y:auto;padding:28px 32px;display:flex;flex-direction:column;gap:24px}
+.entity-hero{display:flex;align-items:flex-start;gap:24px}
+.hero-img{width:90px;height:120px;border-radius:7px;background:var(--s2);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;position:relative;transition:border-color 0.2s}
+.hero-img:hover{border-color:var(--gold-d)}
+.hero-img img{width:100%;height:100%;object-fit:cover;display:none}
+.hero-placeholder{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-m)}
+.hero-placeholder span{font-size:22px}
+.hero-placeholder p{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-align:center;text-transform:uppercase}
+.upload-overlay{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);color:var(--gold-d);font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-align:center;padding:5px;text-transform:uppercase;opacity:0;transition:opacity 0.2s}
+.hero-img:hover .upload-overlay{opacity:1}
+.hero-fields{flex:1;display:flex;flex-direction:column;gap:10px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.detail-card{background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:14px}
+.detail-card-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold-d);margin-bottom:8px}
+.inspo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.inspo-cell{aspect-ratio:1;border-radius:6px;background:var(--s2);border:1px solid var(--border);overflow:hidden;cursor:pointer;position:relative;transition:border-color 0.2s}
+.inspo-cell:hover{border-color:var(--gold-d)}
+.inspo-cell img{width:100%;height:100%;object-fit:cover}
+.inspo-add{aspect-ratio:1;border-radius:6px;background:transparent;border:1px dashed var(--b3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-m);font-size:18px;transition:all 0.2s}
+.inspo-add:hover{border-color:var(--gold-d);color:var(--gold)}
+.inspo-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;color:#fff;font-size:10px;display:none;align-items:center;justify-content:center}
+.inspo-cell:hover .inspo-del{display:flex}
+.appearances-list{display:flex;flex-direction:column;gap:6px}
+.appearance-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--s2);border:1px solid var(--border);border-radius:5px;font-size:11px}
+.app-ep{font-size:9px;font-family:'DM Mono',monospace;color:var(--gold-d);min-width:50px}
+.app-scene{color:var(--text-d);flex:1}
+
+/* WRITING */
+.writing-layout{display:grid;grid-template-columns:200px 1fr 220px;height:100%;overflow:hidden}
+.writing-nav{border-right:1px solid var(--border);background:var(--surface);overflow-y:auto;display:flex;flex-direction:column}
+.writing-nav-header{padding:16px 14px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.scene-nav-items{flex:1;overflow-y:auto;padding:8px}
+.scene-nav-item{padding:8px 10px;border-radius:5px;cursor:pointer;transition:background 0.15s;display:flex;flex-direction:column;gap:2px}
+.scene-nav-item:hover{background:var(--s2)}
+.scene-nav-item.active{background:var(--s3);border-left:2px solid var(--gold)}
+.sni-num{font-size:9px;font-family:'DM Mono',monospace;color:var(--gold-d)}
+.sni-title{font-size:11px;color:var(--cream);font-weight:300}
+.writing-center{display:flex;flex-direction:column;overflow:hidden}
+.writing-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;gap:12px}
+.mode-toggle{display:flex;background:var(--s3);border-radius:5px;padding:2px;gap:2px}
+.mode-btn{padding:5px 12px;border-radius:4px;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;color:var(--text-m);border:none;background:transparent}
+.mode-btn.active{background:var(--s2);color:var(--gold);border:1px solid var(--b3)}
+.tool-group{display:flex;align-items:center;gap:6px}
+.tool-btn{width:30px;height:30px;border-radius:5px;background:transparent;border:1px solid var(--b2);color:var(--text-d);cursor:pointer;transition:all 0.2s;font-size:13px;display:flex;align-items:center;justify-content:center}
+.tool-btn:hover{border-color:var(--gold-d);color:var(--gold)}
+.writing-paper-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:32px;display:flex;justify-content:center}
+.writing-paper{width:100%;max-width:680px;background:var(--paper);border-radius:2px;box-shadow:0 0 0 1px var(--paper-line),0 8px 40px rgba(0,0,0,0.5);min-height:100%;position:relative}
+.paper-margin{position:absolute;left:64px;top:0;bottom:0;width:1px;background:rgba(180,100,100,0.25);pointer-events:none}
+.writing-area{position:relative;padding:40px 48px 60px 80px;min-height:calc(100% - 0px);display:flex;flex-direction:column;gap:0}
+.paper-lines-bg{position:absolute;inset:0;background-image:repeating-linear-gradient(transparent,transparent 31px,var(--paper-line) 31px,var(--paper-line) 32px);background-position:0 40px;pointer-events:none;border-radius:2px}
+.script-field{background:transparent;border:none;outline:none;resize:none;font-family:inherit;color:var(--ink);width:100%;line-height:1.6;font-size:12px}
+.scene-heading-field{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.action-field{margin-bottom:10px;font-size:12px}
+.character-field{text-transform:uppercase;font-size:12px;font-weight:600;margin-left:180px;margin-bottom:2px;width:calc(100% - 180px)}
+.dialogue-field{margin-left:100px;margin-right:100px;font-size:12px;width:calc(100% - 200px);margin-bottom:10px}
+.parenthetical-field{margin-left:130px;font-size:12px;font-style:italic;width:calc(100% - 130px);margin-bottom:2px}
+.prose-area{font-family:'Cormorant Garamond',serif}
+.chapter-title{font-size:22px;font-weight:400;color:var(--ink);margin-bottom:24px;font-style:italic;text-align:center}
+.prose-editor{background:transparent;border:none;outline:none;resize:none;font-family:'Cormorant Garamond',serif;color:var(--ink);width:100%;line-height:1.9;font-size:16px;font-weight:400;min-height:600px}
+.canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--paper)}
+#penCanvas{width:100%;height:100%;touch-action:none;cursor:crosshair;display:block}
+.canvas-controls{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(30,30,28,0.9);border:1px solid var(--b2);border-radius:20px;padding:6px 12px;backdrop-filter:blur(8px)}
+.pen-dot{border-radius:50%;background:var(--ink);flex-shrink:0;cursor:pointer;transition:all 0.2s}
+.pen-dot:hover{background:var(--gold)}
+.pen-dot.active-pen{outline:2px solid var(--gold);outline-offset:2px}
+.pen-color{width:16px;height:16px;border-radius:50%;cursor:pointer;border:1px solid rgba(255,255,255,0.2);flex-shrink:0}
+.pen-color.active-color{border:2px solid var(--gold)}
+.canvas-sep{width:1px;background:var(--b3);margin:0 2px}
+.writing-sidebar{border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:18px 14px}
+.ws-section{margin-bottom:22px}
+.ws-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-m);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ws-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.char-mention,.loc-mention{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:4px;cursor:pointer;transition:background 0.15s;font-size:11px;color:var(--text-d)}
+.char-mention:hover,.loc-mention:hover{background:var(--s2)}
+.char-dot{width:6px;height:6px;border-radius:50%;background:var(--gold-d);flex-shrink:0}
+.loc-dot{width:6px;height:6px;border-radius:50%;background:#5a9a78;flex-shrink:0}
+.scene-notes-area{background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:8px 10px;font-family:'Jost',sans-serif;font-size:11px;font-weight:300;color:var(--text-d);min-height:80px;outline:none;resize:none;width:100%;line-height:1.6}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:28px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto;animation:modalIn 0.2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;color:var(--cream);margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--s3);border:1px solid var(--b3);border-radius:6px;padding:10px 18px;font-size:11px;font-family:'DM Mono',monospace;color:var(--cream-d);letter-spacing:0.08em;z-index:2000;transition:transform 0.3s ease;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text-m)}
+.empty-icon{font-size:36px;opacity:0.5}
+.empty-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--text-d)}
+.empty-sub{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em}
+
+/* SAVE INDICATOR */
+#save-indicator{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.1em;color:var(--text-m);opacity:0;transition:opacity 0.4s}
+#save-indicator.visible{opacity:1;color:var(--gold-d)}
+
+
+/* PROJECT SWITCHER */
+.proj-switcher{display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--border);border-radius:20px;padding:3px 6px}
+.proj-btn{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.12em;text-transform:uppercase;padding:4px 10px;border-radius:14px;cursor:pointer;transition:all 0.2s;color:var(--text-m);border:none;background:transparent}
+.proj-btn.active-proj{background:var(--gold);color:var(--ink);font-weight:400}
+.proj-btn:hover:not(.active-proj){color:var(--gold)}
+
+input[type=file]{display:none}
+
+/* DRIVE AUTH SCREEN */
+.auth-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;max-width:420px;width:90%;text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center;box-shadow:0 4px 32px rgba(0,0,0,0.08)}
+.auth-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-style:italic;color:var(--gold)}
+.auth-sub{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em;color:var(--text-m);line-height:1.8;text-transform:uppercase}
+.auth-desc{font-size:13px;color:var(--text-d);line-height:1.7;font-weight:300}
+.g-btn{display:flex;align-items:center;gap:10px;background:#fff;color:#333;border:1px solid var(--border);border-radius:6px;padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity 0.2s;width:100%;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.g-btn:hover{opacity:0.85}
+.g-btn img{width:18px;height:18px}
+.skip-btn{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.1em;color:var(--text-m);background:none;border:none;cursor:pointer;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px}
+.skip-btn:hover{color:var(--text-d)}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">✦ The Notebook</div>
+    <div class="auth-sub">Your Creative Writing Suite</div>
+    <p class="auth-desc">Sign in with Google to automatically sync your project across all your devices via Google Drive.</p>
+    <button class="g-btn" onclick="signIn()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      Continue with Google
+    </button>
+    <button class="skip-btn" onclick="skipAuth()">Continue without sync</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo"><div class="logo-dot"></div>The Notebook</div>
+  <div class="header-right">
+    <div class="sync-bar" id="sync-bar" style="display:none">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span class="sync-label" id="sync-label">Offline</span>
+    </div>
+    <div class="proj-switcher">
+      <button class="proj-btn active-proj" id="proj-btn-lsm" onclick="switchProject('lsm')">La Seconda Me</button>
+      <button class="proj-btn" id="proj-btn-hs" onclick="switchProject('hs')">Half Send</button>
+    </div>
+    <div class="project-bar">
+      <span class="proj-type" id="type-series" onclick="setType('series')">Series</span>
+      <span class="proj-type" id="type-book" onclick="setType('book')">Book</span>
+    </div>
+    <button class="drive-btn" id="drive-btn" onclick="signIn()" style="display:none">
+      Connect Drive
+    </button>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <div class="tab active" onclick="switchTab('planning')"><span>🗺</span>Planning</div>
+  <div class="tab" onclick="switchTab('storyboard')"><span>🃏</span>Storyboard</div>
+  <div class="tab" onclick="switchTab('episodes')"><span>📺</span>Episodes / Chapters</div>
+  <div class="tab" onclick="switchTab('characters')"><span>🎭</span>Characters</div>
+  <div class="tab" onclick="switchTab('locations')"><span>📍</span>Locations</div>
+  <div class="tab" onclick="switchTab('writing')"><span>✍️</span>Write</div>
+</nav>
+
+<main>
+
+<!-- PLANNING -->
+<div class="panel active" id="panel-planning">
+  <div class="planning-layout">
+    <div class="planning-sidebar">
+      <div class="field"><label>Logline</label><textarea id="logline" rows="3" placeholder="One sentence. What is this story about?"></textarea></div>
+      <div class="field"><label>Genre</label><input type="text" id="genre" placeholder="Drama, Thriller, Romance..."></div>
+      <div class="field"><label>Tone</label><input type="text" id="tone" placeholder="Dark, Cinematic, Bittersweet..."></div>
+      <div class="field"><label>Setting</label><input type="text" id="setting" placeholder="Where & when"></div>
+      <div class="field"><label>Themes</label><textarea id="themes" rows="3" placeholder="Core themes & ideas..."></textarea></div>
+      <div class="field"><label>Inspiration</label><textarea id="inspiration-field" rows="3" placeholder="References, films, books, mood..."></textarea></div>
+    </div>
+    <div class="planning-main">
+      <div class="sec-head"><div><div class="sec-title">Story Structure</div><div class="sec-sub">Map your act breaks</div></div></div>
+      <div class="act-grid">
+        <div class="act-card"><div class="act-card-label">Act I — Setup</div><textarea class="script-field" id="act1" placeholder="Establish world, characters, inciting incident..."></textarea></div>
+        <div class="act-card"><div class="act-card-label">Act II — Confrontation</div><textarea class="script-field" id="act2" placeholder="Rising tension, midpoint, dark night of the soul..."></textarea></div>
+        <div class="act-card"><div class="act-card-label">Act III — Resolution</div><textarea class="script-field" id="act3" placeholder="Climax, resolution, aftermath..."></textarea></div>
+      </div>
+      <div class="divider-label">Beat Sheet</div>
+      <div id="beat-board" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addBeat()">+ Add Beat</button>
+      <div style="margin-top:28px" class="divider-label">Notes</div>
+      <div class="notes-split">
+        <div class="field"><label>Writer's Notes</label><textarea id="writer-notes" rows="6" placeholder="Thoughts, questions, things to research..."></textarea></div>
+        <div class="field"><label>What Ifs</label><textarea id="what-ifs" rows="6" placeholder="Alternate directions, wild ideas..."></textarea></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STORYBOARD -->
+<div class="panel" id="panel-storyboard">
+  <div class="board-toolbar">
+    <div class="board-filter">
+      <span class="filter-btn active" onclick="setBoardView(this)">All</span>
+      <span class="filter-btn" onclick="setBoardView(this)">Act I</span>
+      <span class="filter-btn" onclick="setBoardView(this)">Act II</span>
+      <span class="filter-btn" onclick="setBoardView(this)">Act III</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-ghost btn-sm" onclick="addBoardCol()">+ Column</button>
+      <button class="btn btn-gold btn-sm" onclick="openCardModal()">+ Scene Card</button>
+    </div>
+  </div>
+  <div class="board-canvas"><div class="board-columns" id="board-columns"></div></div>
+</div>
+
+<!-- EPISODES -->
+<div class="panel" id="panel-episodes">
+  <div class="ep-layout">
+    <div class="ep-sidebar">
+      <div class="ep-sidebar-header">
+        <span style="font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-m)" id="ep-sidebar-label">Episodes</span>
+        <button class="btn btn-ghost btn-sm" onclick="addEpisode()">+</button>
+      </div>
+      <div class="ep-items" id="ep-items"></div>
+    </div>
+    <div class="ep-detail" id="ep-detail"><div class="empty-state"><div class="empty-icon">📺</div><div class="empty-title">No episode selected</div><div class="empty-sub">Create or select one</div></div></div>
+  </div>
+</div>
+
+<!-- CHARACTERS -->
+<div class="panel" id="panel-characters">
+  <div class="dashboard-layout">
+    <div class="entity-list">
+      <div class="entity-list-header">
+        <span style="font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-m)">Characters</span>
+        <button class="btn btn-ghost btn-sm" onclick="addCharacter()">+</button>
+      </div>
+      <div class="entity-items" id="char-items"></div>
+    </div>
+    <div class="entity-detail" id="char-detail"><div class="empty-state"><div class="empty-icon">🎭</div><div class="empty-title">No character selected</div></div></div>
+  </div>
+</div>
+
+<!-- LOCATIONS -->
+<div class="panel" id="panel-locations">
+  <div class="dashboard-layout">
+    <div class="entity-list">
+      <div class="entity-list-header">
+        <span style="font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-m)">Locations</span>
+        <button class="btn btn-ghost btn-sm" onclick="addLocation()">+</button>
+      </div>
+      <div class="entity-items" id="loc-items"></div>
+    </div>
+    <div class="entity-detail" id="loc-detail"><div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No location selected</div></div></div>
+  </div>
+</div>
+
+<!-- WRITING -->
+<div class="panel" id="panel-writing">
+  <div class="writing-layout">
+    <div class="writing-nav">
+      <div class="writing-nav-header">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-m);margin-bottom:8px">Scenes</div>
+        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="addWritingScene()">+ Scene</button>
+      </div>
+      <div class="scene-nav-items" id="scene-nav-items"></div>
+    </div>
+    <div class="writing-center">
+      <div class="writing-toolbar">
+        <div class="mode-toggle">
+          <button class="mode-btn active" onclick="setWriteMode('screenplay',this)">Screenplay</button>
+          <button class="mode-btn" onclick="setWriteMode('prose',this)">Prose</button>
+          <button class="mode-btn" onclick="setWriteMode('pen',this)">✏️ Pen</button>
+        </div>
+        <div class="tool-group" id="type-tools">
+          <button class="tool-btn" title="Scene Heading" onclick="insertScreenplayEl('heading')">H</button>
+          <button class="tool-btn" title="Action" onclick="insertScreenplayEl('action')">A</button>
+          <button class="tool-btn" title="Character" onclick="insertScreenplayEl('character')">C</button>
+          <button class="tool-btn" title="Dialogue" onclick="insertScreenplayEl('dialogue')">D</button>
+          <button class="tool-btn" title="Parenthetical" onclick="insertScreenplayEl('paren')">()</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="save-indicator">● Saved</span>
+          <button class="btn btn-ghost btn-sm" id="paper-toggle-btn" onclick="togglePaperTheme()">🌙 Dark Paper</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportTXT()">Export TXT</button>
+        </div>
+      </div>
+      <div class="writing-paper-wrap" id="type-area">
+        <div class="writing-paper">
+          <div class="paper-lines-bg"></div>
+          <div class="paper-margin"></div>
+          <div class="writing-area screenplay-area" id="writing-area"></div>
+        </div>
+      </div>
+      <div class="canvas-wrap" id="pen-area" style="display:none">
+        <canvas id="penCanvas"></canvas>
+        <div class="canvas-controls">
+          <div class="pen-dot active-pen" style="width:3px;height:3px" onclick="setPenSize(1,this)"></div>
+          <div class="pen-dot" style="width:5px;height:5px" onclick="setPenSize(2.5,this)"></div>
+          <div class="pen-dot" style="width:8px;height:8px" onclick="setPenSize(5,this)"></div>
+          <div class="canvas-sep"></div>
+          <div class="pen-color active-color" style="background:#1c1a16" onclick="setPenColor('#1c1a16',this)"></div>
+          <div class="pen-color" style="background:#C8A96A" onclick="setPenColor('#C8A96A',this)"></div>
+          <div class="pen-color" style="background:#7A0000" onclick="setPenColor('#7A0000',this)"></div>
+          <div class="pen-color" style="background:#3a6a8a" onclick="setPenColor('#3a6a8a',this)"></div>
+          <div class="canvas-sep"></div>
+          <button class="btn btn-ghost btn-sm" onclick="clearCanvas()">Clear</button>
+        </div>
+      </div>
+    </div>
+    <div class="writing-sidebar">
+      <div class="ws-section">
+        <div class="ws-label">Scene</div>
+        <div class="field"><label>Title</label><input type="text" id="ws-scene-title" placeholder="Scene name"></div>
+        <div class="field"><label>Location</label><input type="text" id="ws-scene-loc" placeholder="Where?"></div>
+        <div class="field"><label>Time</label><input type="text" id="ws-scene-time" placeholder="Day / Night / Dawn..."></div>
+      </div>
+      <div class="ws-section">
+        <div class="ws-label">Characters in Scene</div>
+        <div id="ws-char-list"></div>
+        <input type="text" placeholder="Tag character + Enter" id="ws-char-input" style="margin-top:6px;font-size:11px" onkeydown="tagCharacter(event)">
+      </div>
+      <div class="ws-section">
+        <div class="ws-label">Locations in Scene</div>
+        <div id="ws-loc-list"></div>
+        <input type="text" placeholder="Tag location + Enter" id="ws-loc-input" style="margin-top:6px;font-size:11px" onkeydown="tagLocation(event)">
+      </div>
+      <div class="ws-section">
+        <div class="ws-label">Scene Notes</div>
+        <textarea class="scene-notes-area" placeholder="Beats to hit, ideas..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="card-modal">
+  <div class="modal">
+    <div class="modal-title">Scene Card</div>
+    <div class="field"><label>Title</label><input type="text" id="card-title" placeholder="Scene title"></div>
+    <div class="field"><label>Summary</label><textarea id="card-summary" rows="3" placeholder="What happens?"></textarea></div>
+    <div class="field"><label>Act</label><select id="card-act"><option value="act1">Act I</option><option value="act2">Act II</option><option value="act3">Act III</option></select></div>
+    <div class="field"><label>Episode / Chapter</label><input type="text" id="card-ep" placeholder="e.g. Ep 1, Ch 3"></div>
+    <div class="field"><label>Characters</label><input type="text" id="card-chars" placeholder="Comma separated"></div>
+    <div class="field"><label>Location</label><input type="text" id="card-loc" placeholder="Where?"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('card-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ep-modal">
+  <div class="modal">
+    <div class="modal-title" id="ep-modal-title">New Episode</div>
+    <div class="field"><label>Title</label><input type="text" id="ep-title-input" placeholder="Title"></div>
+    <div class="field"><label>Logline</label><textarea id="ep-logline" rows="2" placeholder="What happens?"></textarea></div>
+    <div class="field"><label>Notes</label><textarea id="ep-notes" rows="3" placeholder="Ideas, subplots..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('ep-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveEpisode()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="char-modal">
+  <div class="modal">
+    <div class="modal-title">New Character</div>
+    <div class="field"><label>Full Name</label><input type="text" id="char-name-input" placeholder="Name"></div>
+    <div class="field"><label>Role</label><input type="text" id="char-role-input" placeholder="Protagonist, Antagonist, Supporting..."></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('char-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveCharacter()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loc-modal">
+  <div class="modal">
+    <div class="modal-title">New Location</div>
+    <div class="field"><label>Name</label><input type="text" id="loc-name-input" placeholder="Location name"></div>
+    <div class="field"><label>Type</label><input type="text" id="loc-type-input" placeholder="Interior, Exterior, City..."></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('loc-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveLocation()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="hero-file-input" accept="image/*" onchange="handleHeroUpload(event)">
+<input type="file" id="inspo-file-input" accept="image/*" multiple onchange="handleInspoUpload(event)">
+
+<script>
+// ═══════════ CONFIG — REPLACE THESE ═══════════
+const GOOGLE_CLIENT_ID = '332132517806-e0kof3pv64iks9cbhv0kkv1gn2qtpj4v.apps.googleusercontent.com';
+const GOOGLE_API_KEY   = 'AIzaSyBVLa-MyG0Ak6ZhRoAyQBVzUmn48woUxsc';
+const DRIVE_FILE_NAME  = 'notebook-project.json';
+const DRIVE_FOLDER     = 'The Notebook App'; // folder in Drive
+// ═════════════════════════════════════════════
+
+
+// ═══════════ PRELOADED PROJECT DATA ═══════════
+const PRELOADED_PROJECTS = {
+  lsm: {
+    id: 'lsm',
+    name: 'La Seconda Me',
+    type: 'series',
+    logline: 'A guarded Black student flees her past for a fresh start in Rome, only to discover that reinventing yourself is harder — and more beautiful — than she imagined.',
+    genre: 'Drama · Dark Comedy · Coming-of-Age · Identity Thriller',
+    tone: 'Dark, cinematic, bittersweet. Handheld chaos in nightlife scenes, fluid wide shots for iconic Rome backdrops, tight close-ups during internal collapse.',
+    setting: 'Rome, Italy — Present Day. A prestigious private liberal arts university where privilege, parties, and pressure make self-discovery exciting yet dangerous.',
+    themes: 'Identity vs. performance. Class privilege and microaggressions. What is real versus a crafted facade? Financial strain, viral scandals, emotional breakdowns. Self-worth valued in Instagram likes, grades, and group chats.',
+    inspiration: 'Visual refs: Marcell Rév (Euphoria), Petra Collins, Drive (2011), Baby (Netflix). Comps: Gossip Girl, Euphoria, Grown-ish, Dear White People. Sound: R&B, European alt-pop, Afrobeats, voice notes, ambient club noise. Color palette: Terracotta, gold, deep wine, muted blues.',
+    act1: 'Lillie arrives in Rome alone — Rosalyn couldn\'t come. She meets her wildly different roommates, navigates culture shock and a first microaggression at a party, and begins falling in love with the city. A flashback reveals what she left behind.',
+    act2: 'Lillie deepens her Roman life — a situationship with Emanuele who is charming but microaggressive, Claudia\'s secret relationship with Allegra unraveling, Isela\'s chaotic love life, a viral incident from a house party. A trip to France, then the fallout.',
+    act3: 'The end-of-semester blowup. Someone gets arrested. Lillie has a heated fight with Emanuele about race. Rosalyn visits and forces a real conversation. Lillie questions whether this school is where she finds herself.',
+    writerNotes: 'WGA Registered #2305487. Pilot script complete. Format: Hour-long (45-50 min). Each season = 1 academic semester. 4 university seasons + 2 post-grad seasons planned. Season 1 = Junior Fall.',
+    whatIfs: 'What if Rosalyn eventually comes to Rome? What if Emanuele knows Claudia\'s secret? What is Lillie\'s "other account"? Who gets arrested in Ep 10? Who is Isela\'s one-night stand she develops feelings for?',
+    beats: [
+      {id:1,text:'Lillie arrives at FCO airport alone — Taxi driver clocks her in Italian, she understands'},
+      {id:2,text:'Meets Claudia outside the apartment — Salvatore helps with bags, dynamic established'},
+      {id:3,text:'Meets all the roommates — Laurel reading on the balcony, Isela exits her room with a woman'},
+      {id:4,text:'Room tour — the apartment is stunning, Claudia\'s family owns the building'},
+      {id:5,text:'Video calls Rosalyn — bittersweet, morning sickness cuts the call short'},
+      {id:6,text:'Flashback — Lillie and Rosalyn on their dorm bed, planning Rome together on TikTok'},
+      {id:7,text:'Lillie solo walks Rome — falling in love with the city'},
+      {id:8,text:'Gets ready for the party with the girls'},
+      {id:9,text:'Goes to the party — first microaggression happens'},
+      {id:10,text:'Claudia sneaks away to meet Allegra'},
+      {id:11,text:'Lillie meets Emanuele — electric first encounter'},
+      {id:12,text:'Goes home — night routine'},
+      {id:13,text:'Emanuele texts Lillie'},
+      {id:14,text:'Everyone gets a notification — a new group chat is created. FADE TO BLACK.'},
+    ],
+    boardCols: [
+      {id:'col-1',label:'Act I',color:'#6a3a2a'},
+      {id:'col-2',label:'Act II',color:'#7a4a1a'},
+      {id:'col-3',label:'Act III',color:'#6a2a2a'},
+    ],
+    cards: [
+      {id:'lsm-c1',title:'Lillie arrives in Rome',summary:'FCO airport. Taxi driver makes a comment in Italian — she catches it. First hint Rome will not be what she expected.',colId:'col-1',ep:'Ep 1',chars:'Lillie Mae Sinclair',loc:'FCO Airport',act:'act1'},
+      {id:'lsm-c2',title:'Meets the roommates',summary:'Claudia sweeps her in, Salvatore helps with bags. Laurel is on the balcony. Isela exits her room with a woman. The apartment is stunning.',colId:'col-1',ep:'Ep 1',chars:'Lillie Mae Sinclair, Claudia Eleonora Visconti, Laurel O\'Shea, Isela Morales',loc:'The Girls Apartment',act:'act1'},
+      {id:'lsm-c3',title:'Video calls Rosalyn',summary:'Room tour via video call. Bittersweet. Rosalyn\'s morning sickness cuts it short — pregnancy implied.',colId:'col-1',ep:'Ep 1',chars:'Lillie Mae Sinclair, Rosalyn McCoy',loc:'The Girls Apartment',act:'act1'},
+      {id:'lsm-c4',title:'Flashback — planning Rome',summary:'Lillie and Rosalyn on their freshman dorm bed, scrolling TikTok study abroad trends, dreaming about doing this together.',colId:'col-1',ep:'Ep 1',chars:'Lillie Mae Sinclair, Rosalyn McCoy',loc:'Freshman Dorm',act:'act1'},
+      {id:'lsm-c5',title:'Lillie solo walks Rome',summary:'She moves through the city alone. It starts to feel like home.',colId:'col-1',ep:'Ep 1',chars:'Lillie Mae Sinclair',loc:'Rome Streets',act:'act1'},
+      {id:'lsm-c6',title:'Party — first microaggression',summary:'Lillie\'s first real Roman social event. She navigates the room. A man uses a microaggression in conversation. Claudia sneaks away.',colId:'col-2',ep:'Ep 1',chars:'Lillie Mae Sinclair, Claudia Eleonora Visconti, Emanuele Vitale',loc:'Spazio',act:'act2'},
+      {id:'lsm-c7',title:'Lillie meets Emanuele',summary:'Electric first encounter at the party. Something shifts.',colId:'col-2',ep:'Ep 1',chars:'Lillie Mae Sinclair, Emanuele Vitale',loc:'Spazio',act:'act2'},
+      {id:'lsm-c8',title:'House party — the incident',summary:'Claudia throws a house party. Allegra sends cryptic texts. Emanuele attends. Isela goes wild. The video that causes the incident is filmed here.',colId:'col-2',ep:'Ep 4',chars:'Lillie Mae Sinclair, Claudia Eleonora Visconti, Isela Morales, Emanuele Vitale',loc:'The Girls Apartment',act:'act2'},
+      {id:'lsm-c9',title:'France holiday',summary:'The girls go to Claudia\'s family chateau. Lillie gets braids before leaving. The video leaks while they\'re on vacation.',colId:'col-2',ep:'Ep 6',chars:'Lillie Mae Sinclair, Claudia Eleonora Visconti, Isela Morales, Laurel O\'Shea',loc:'Claudia\'s Chateau, France',act:'act2'},
+      {id:'lsm-c10',title:'Rosalyn visits',summary:'Lillie is thrilled. Rosalyn sees how Lillie is treated and asks how she\'s really doing. Deep conversation about racism and microaggressions.',colId:'col-3',ep:'Ep 9',chars:'Lillie Mae Sinclair, Rosalyn McCoy, Ronan Byrne',loc:'Rome',act:'act3'},
+      {id:'lsm-c11',title:'End-of-semester blowup',summary:'Claudia tells Lillie about Allegra. Joint American/Italian party. Someone gets arrested for drugs. Lillie and Emanuele have a heated fight about race. She questions everything.',colId:'col-3',ep:'Ep 10',chars:'Lillie Mae Sinclair, Claudia Eleonora Visconti, Emanuele Vitale',loc:'University Campus',act:'act3'},
+    ],
+    episodes: [
+      {title:'The Second Me',logline:'Lillie arrives in Rome alone and is instantly confronted with culture shock. She meets her roommates, attends her first party, and meets someone who will complicate everything.',notes:'PILOT. Full script complete. Cultural shock & displacement. Theme: Who are you when no one from home is watching?',scenes:[]},
+      {title:'Girls You Meet Online',logline:'The semester begins. Lillie realizes Emanuele attends her university. Professors and students treat her differently — she assumes it\'s because she\'s new.',notes:'Theme: Assumptions & Appearances. Claudia\'s campus popularity revealed. Laurel hides in the library.',scenes:[]},
+      {title:'All Eyes On Her',logline:'Lillie goes on a first date with Emanuele. The girls figure out which clubs to join. Lillie feels excluded. Isela invites her out — men use microaggressions all night.',notes:'Theme: Visibility vs. Belonging.',scenes:[]},
+      {title:'The Guest List',logline:'Claudia throws a house party. Allegra sends cryptic texts about being invited. Emanuele attends and continues with microaggressions. Isela is the life of the party until a past lover arrives.',notes:'Theme: Control & Curation. THE VIDEO IS FILMED HERE. Laurel hibernates in her room.',scenes:[]},
+      {title:'Extra Credit',logline:'Isela cheats on an exam after buying Adderall from Giancarlo. Everyone except Laurel goes clubbing instead of studying. Laurel tutors the soccer stars and develops a secret crush on Luca.',notes:'Theme: Escapism & Avoidance. Giancarlo introduced as gatekeeper/drug dealer.',scenes:[]},
+      {title:'Braid Out, Blacked Out',logline:'Unaware of the house party fallout, the girls go to Claudia\'s family chateau in France. But first Lillie gets braids — on the wrong side of Rome.',notes:'Theme: Identity & Cultural Dislocation. The video leaks while they\'re on vacation in France. Cliffhanger.',scenes:[]},
+      {title:'Damage Control',logline:'The girls land back in Rome to find the video has gone viral. They have to continue with life and university while dealing with the fallout.',notes:'Theme: Consequences & Image. We finally see the video and find out what happened.',scenes:[]},
+      {title:'Spa Trap',logline:'Riccardo throws his annual spa event. Lillie thinks it will be relaxing. She\'s wrong. They shop for "outfits" and run into Allegra. Laurel goes because Luca will be there.',notes:'Theme: False Healing. Luca and Laurel flirt all night.',scenes:[]},
+      {title:'Familiar Eyes',logline:'Lillie gets a surprise visit from Rosalyn. Laurel gets a surprise visit from Ronan — the one person who knows her secret. Rosalyn sees how Lillie is treated and forces a real conversation.',notes:'Theme: You Can Never Outrun the Past. Rosalyn: "How are you doing?" Deep conversation about racism, microaggressions, and what Lillie has been surviving.',scenes:[]},
+      {title:'Who Are You Without Me?',logline:'Claudia tells Lillie her secret before the party. Joint end-of-semester event. Someone gets arrested for drug possession. Lillie and Emanuele have a blowup fight about race. She questions everything.',notes:'Theme: Letting Go of Control. Isela realizes she may have real feelings for one of her one-night stands. Season finale.',scenes:[]},
+    ],
+    characters: [
+      {name:'Lillie Mae Sinclair',role:'Protagonist',age:'21',personality:'Smart, stylish, and emotionally guarded. Raised to be composed, helpful, but hard to break. The kind of girl who gives great advice but never shares how she\'s doing. A Taurus Sun / Virgo Moon — The Performer.',backstory:'Planned to move to Rome with her best friend Rosalyn. Came alone after Rosalyn got pregnant. Left something behind in the US she doesn\'t talk about. Struggled her whole life, near-breakdown before leaving.',wantneed:'Wants: to be respected, admired, and in control of her image. To never be seen as weak or broken again. Needs: to be the version of herself she\'s afraid to show.',arc:'Arrives performing a version of herself. Rome slowly cracks her open. The version she built starts to fracture between microaggressions, social disillusionment, and a situationship she can\'t control.',relationships:'Rosalyn McCoy (best friend, back home, pregnant). Claudia (roommate, growing trust). Emanuele (situationship, complicated). Isela (friend). Laurel (slowly growing).',notes:'SECRET: She used to self-harm. And lately, the pressure feels familiar again. Has a "other account" Rosalyn references — key plot thread. Dream casting: Imani Lewis. Playlist: Try Me – Jorja Smith, Love Galore – SZA, Pressure – Ari Lennox, Tears in the Club – FKA twigs.',inspo:[]},
+      {name:'Claudia Eleonora Visconti',role:'Roommate / Supporting',age:'21',personality:'Swiss and Italian heiress. Impeccable style, moves through Rome like she owns it — because she could. Bubbly, generous, warm on the surface. Leo Sun / Capricorn Moon — The Illusionist.',backstory:'Old money Roman family owns the apartment building. Has been curating and controlling her image her entire life. For the first time, the narrative is slipping.',wantneed:'Wants: to be untouchable, unbothered, and unforgettable. Needs: to surrender control, risk vulnerability, and accept that real love means being known.',arc:'Claudia\'s secret relationship slowly unravels over the season. Cracks form for the first time.',relationships:'Lillie (roommate, growing trust). Allegra Mancini (secret lover, 32, Milanese art curator). Salvatore (building manager, flirty).',notes:'SECRET: In a secret lesbian relationship with Allegra, an older woman. Dream casting: Zoé Pastelle Holthuizen. Playlist: Tu t\'en iras – La Zarra, Narcissist – Sevdaliza, Rapide – Mahmood.',inspo:[]},
+      {name:'Isela Morales',role:'Roommate / Supporting',age:'20',personality:'From Seville, Spain. Naturally flirty, emotionally unpredictable. Masks her fear of abandonment with partying, charm, and a roster she never fully lets in. Aries Sun / Gemini Moon — The Escapist.',backstory:'Father is a conservative politician back home who doesn\'t know she\'s bisexual. Has a secret online life.',wantneed:'Wants: to feel desired, in demand, always one step ahead of heartbreak. Needs: to stop using attention as armor and admit she\'s scared of being abandoned.',arc:'Her past, her sexuality, and her secret online life begin to collide. Forced to confront whether her freedom is just another mask.',relationships:'Lillie (friend). Past lovers who keep reappearing. One-night stand she develops real feelings for.',notes:'SECRET: Father is a conservative politician, doesn\'t know she\'s bisexual. Dream casting: María Pedraza. Playlist: Estilazo – Arca & Rosalía, Yo Perreo Sola – Bad Bunny.',inspo:[]},
+      {name:'Laurel O\'Shea',role:'Roommate / Supporting',age:'20',personality:'Traditional Irish Catholic schoolgirl turned quiet wildcard. Quiet, reserved, observant. Keeps to herself. Scorpio Sun / Pisces Moon — The Observer.',backstory:'Had a secret abortion before starting university in Rome. Ronan is the only person who knows.',wantneed:'Wants: to be invisible, protected, emotionally safe. Needs: to believe she can be known and still loved.',arc:'Laurel\'s walls start to crumble as her quiet crush on Luca grows — and Ronan shows up.',relationships:'Ronan Byrne (knows her secret, complicated). Luca Barone (secret crush, chemistry builds in tutoring scenes).',notes:'SECRET: Secret abortion before Rome. Ronan is the baby\'s father who shows up in Ep 9. Dream casting: Abigail Cowen. Playlist: Sunday – HNNY, Heaven – Julia Michaels, Bittersweet – Lianne La Havas.',inspo:[]},
+      {name:'Emanuele Vitale',role:'Love Interest / Antagonist',age:'23',personality:'Elite Roman party guest. Heir to construction dynasty. Charming, magnetic, unhurried — and microaggressive. Sees Lillie as novelty. Embodies Rome\'s class and race tension.',backstory:'Attends the same university. Old Roman money.',wantneed:'Wants: to charm everyone. Needs: to be challenged.',arc:'Sparks early disillusionment. The situationship escalates until a blowup fight about race ends it.',relationships:'Lillie (situationship). Connected to Claudia\'s social world.',notes:'Storyline: Lillie\'s Situationship with Emanuele.',inspo:[]},
+      {name:'Allegra Mancini',role:'Recurring',age:'32',personality:'Milanese art curator. Older, commanding, emotionally unavailable. Moves in elite social circles.',backstory:'Claudia\'s secret lover. The relationship that threatens to unravel everything.',wantneed:'Wants: to keep things on her terms.',arc:'Her cryptic texts about the house party signal the beginning of the unraveling.',relationships:'Claudia (secret lover).',notes:'',inspo:[]},
+      {name:'Rosalyn McCoy',role:'Recurring',age:'21',personality:'Lillie\'s best friend. Warm, sharp, deeply real. The anchor to Lillie\'s pre-Rome self.',backstory:'Was supposed to move to Rome with Lillie. Got pregnant unexpectedly. Navigating new life back home.',wantneed:'Wants her best friend to be okay. Needs Lillie to be honest with her.',arc:'Video call confidante all season. Visits in Ep 9 and forces the real conversation.',relationships:'Lillie (best friend, sister-level).',notes:'Her reality — pregnancy, staying home — directly contrasts Lillie\'s curated Rome life.',inspo:[]},
+      {name:'Giancarlo De Rossi',role:'Recurring',age:'43',personality:'Nightlife promoter and fixer. Wealthy family. Thrill-seeker funding his own nightlife habits.',backstory:'Supplies Adderall in Ep 5. Gatekeeper to the elite scene.',wantneed:'Dangles access that tempts Lillie and Isela — later scapegoats them.',arc:'',relationships:'',notes:'',inspo:[]},
+      {name:'Luca Barone',role:'Recurring',age:'21',personality:'Star university footballer and struggling art history student. Calabrian background, warm and flirty.',backstory:'',wantneed:'',arc:'Laurel\'s secret crush. Chemistry builds through tutoring scenes.',relationships:'Laurel (secret crush).',notes:'',inspo:[]},
+      {name:'Riccardo Bianchi',role:'Recurring',age:'25',personality:'Milanese fashion heir and party prince.',backstory:'Throws the infamous spa weekend where secrets surface and loyalties are tested.',wantneed:'',arc:'',relationships:'',notes:'',inspo:[]},
+      {name:'Ronan Byrne',role:'Recurring',age:'23',personality:'Charming Irish exchange student with a hidden past.',backstory:'He\'s the father of Laurel\'s abortion. The one person who knows. Shows up in Ep 9.',wantneed:'',arc:'His arrival unravels Laurel\'s carefully maintained distance from her past.',relationships:'Laurel (complicated, shared secret).',notes:'',inspo:[]},
+    ],
+    locations: [
+      {name:'The Girls Apartment',type:'Interior',period:'Present',desc:'Stunning Roman apartment. Claudia\'s family owns the building. Double front doors. Salvatore is the building manager.',vibe:'Elegant, old-world, warm. The center of the girls\' world — parties, confessions, late nights.',significance:'Home base. Most scenes of intimacy and conflict happen here.',notes:'',inspo:[]},
+      {name:'The University',type:'Institution',period:'Present',desc:'A prestigious private liberal arts school in Rome. On paper: opportunity and excellence. In reality: playground for the rich, passport stamp for semester Americans, maze of microaggressions.',vibe:'Beautifully performative. Dreams are curated, pressure is silent. Real campus politics happen in the gardens and WhatsApp group chats.',significance:'Where Lillie navigates academic pressure, class privilege, and being treated differently.',notes:'Professors have cult followings and blur boundaries. Administration views international students as revenue.',inspo:[]},
+      {name:'Spazio',type:'Nightclub / Exterior',period:'Present',desc:'The party venue for Episode 1. Elite Roman social scene.',vibe:'Loud, beautiful, exclusive. Where Lillie first experiences a microaggression and meets Emanuele.',significance:'First night out. Sets the tone for the whole season.',notes:'',inspo:[]},
+      {name:'Bar Ottanta',type:'Bar / Interior',period:'Present',desc:'Local Roman bar.',vibe:'Intimate, neighborhood feel.',significance:'Regular hangout.',notes:'',inspo:[]},
+      {name:'University Library',type:'Interior',period:'Present',desc:'Where Laurel hides. Also where she tutors Luca.',vibe:'Quiet, ornate, safe.',significance:'Laurel\'s sanctuary. Where her relationship with Luca develops.',notes:'',inspo:[]},
+      {name:'Campus Gardens',type:'Exterior',period:'Present',desc:'Where real campus politics unfold.',vibe:'Beautiful and deceptive.',significance:'Gossip, social hierarchy, private conversations.',notes:'',inspo:[]},
+      {name:'Ali\'s',type:'Interior',period:'Present',desc:'',vibe:'',significance:'',notes:'',inspo:[]},
+      {name:'Claudia\'s Chateau, France',type:'Exterior / Estate',period:'Present',desc:'Claudia\'s family estate in France. Where the girls escape for their holiday in Ep 6.',vibe:'Luxury, old European money, deceptively peaceful.',significance:'The video leaks while they\'re here. The vacation is shattered.',notes:'',inspo:[]},
+    ],
+    writingScenes: [],
+  },
+
+  hs: {
+    id: 'hs',
+    name: 'Half Send',
+    type: 'series',
+    logline: 'A former model-turned-creative director joins a crew of pro skaters on a chaotic tour across Europe for a brand collab. While on tour, she dates recklessly — searching for identity, intimacy, and meaning beyond her beauty.',
+    genre: 'Sitcom · Dramedy · Coming-of-Age',
+    tone: 'Cool without trying. Deeply female without apology. Messy, sexy, and emotional. Love as the lesson, not the endgame. References: Sex and The City, Emily In Paris, North Hollywood, Mid90s.',
+    setting: 'Berlin, Germany (home base) + European tour: Rome, Copenhagen, Budapest, São Paulo. 30-minute episodes, 10 per season, 3 planned seasons.',
+    themes: 'Found family. Self-discovery and identity through travel and hookup culture. Cultural exploration — navigating race and belonging as a Black woman in a mostly white subculture. Performing for the world vs. what\'s real. Freedom and control.',
+    inspiration: 'Sound matches each city: Italian Pop & Trap in Rome, casual Nordic vibes in Copenhagen, Techno/EDM in Berlin, sensual energy in Brazil. Visual: skate culture meets fashion world meets emotional intimacy.',
+    act1: 'Joelle quits modeling, lands a job at LUXFER, and is immediately sent to Berlin. She meets the Crew — who are skeptical, funny, and instantly protective. One in particular seems to either love her or hate her.',
+    act2: 'The tour begins. Each city brings a new date, a new lesson. Joelle and Charlie orbit each other — jealousy, tension, a heated Budapest conversation. The Crew becomes family.',
+    act3: 'São Paulo — the World Skate Championships. Joelle goes for one last trip. She and Charlie finally discuss what comes next. The campaign ends. She\'s called back to LA.',
+    writerNotes: '© 2025 Madison Gullatte. All rights reserved. Target: 18-30, men and women, skateboarding fans, fashion lovers, travel enthusiasts, Black and Brown women in the global diaspora.',
+    whatIfs: 'What if Joelle was offered the head creative director role? What happens in LA when the Crew follows her? Does Charlie come after her? Who does Joelle end up with — or does she choose herself?',
+    beats: [
+      {id:1,text:'Joelle quits modeling and gets offered the LUXFER job through an old contact'},
+      {id:2,text:'Immediately told to move to Berlin — she\'s out of place and confused'},
+      {id:3,text:'Meets all of the Crew — one seems to either love her or hate her (Charlie)'},
+      {id:4,text:'Charlie instantly falls for Joelle — she immediately friend-zones him'},
+      {id:5,text:'First European date in Copenhagen — doesn\'t go as expected'},
+      {id:6,text:'The guys take her to the skate park to teach her tricks'},
+      {id:7,text:'Zander invites her to his DJ set — Charlie has to "just be friends" escort her'},
+      {id:8,text:'Charlie recruits the Crew to spy on her Berlin date'},
+      {id:9,text:'Budapest — Joelle goes on a date, they end up at a club with the Crew. Charlie gets jealous, leaves with another girl. Heated conversation that night.'},
+      {id:10,text:'Surprise birthday party — Joelle had a date planned. She and Charlie haven\'t spoken since Budapest.'},
+      {id:11,text:'LUXFER shoe release party in Berlin — Charlie finally asks Joelle on a proper date'},
+      {id:12,text:'São Paulo — World Skate Championships. Joelle goes. She and Charlie discuss what comes next.'},
+    ],
+    boardCols: [
+      {id:'col-a',label:'Berlin',color:'#2a4a3a'},
+      {id:'col-b',label:'On Tour',color:'#3a4a2a'},
+      {id:'col-c',label:'Finale',color:'#4a3a2a'},
+    ],
+    cards: [
+      {id:'hs-c1',title:'Joelle arrives in Berlin',summary:'New job, new city, immediately out of place. Meets the Crew. Charlie is immediately a problem.',colId:'col-a',ep:'Ep 1',chars:'Joelle, Charlie, Zander, Henri, Jeorge',loc:'Berlin, Germany — Crew Apt',act:'act1'},
+      {id:'hs-c2',title:'Copenhagen first date',summary:'First Euro date. The date does not go as expected.',colId:'col-b',ep:'Ep 2',chars:'Joelle',loc:'Copenhagen, Denmark',act:'act2'},
+      {id:'hs-c3',title:'Skate park lessons',summary:'The guys teach Joelle to skate. Bonding, chaos, nicknames.',colId:'col-a',ep:'Ep 3',chars:'Joelle, Charlie, Zander, Henri',loc:'Skate Park, Berlin',act:'act1'},
+      {id:'hs-c4',title:'Charlie spies on her Berlin date',summary:'Charlie recruits the whole Crew to spy on Joelle\'s first Berlin date.',colId:'col-a',ep:'Ep 6',chars:'Joelle, Charlie, Zander, Henri, Jeorge',loc:'Berlin, Germany',act:'act2'},
+      {id:'hs-c5',title:'Rome date — hot and cold',summary:'Joelle dates a Roman guy — vespa ride, flowers, traditional. She realizes he isn\'t genuine. They celebrate the Crew\'s win with a night out in Rome.',colId:'col-b',ep:'Ep 5',chars:'Joelle, Charlie',loc:'Rome, Italy',act:'act2'},
+      {id:'hs-c6',title:'Budapest — the heated conversation',summary:'Date goes well, ends at a club. Charlie sees Joelle with her date, gets jealous, leaves with another girl. That night they have a heated conversation.',colId:'col-b',ep:'Ep 7',chars:'Joelle, Charlie',loc:'Budapest, Hungary',act:'act2'},
+      {id:'hs-c7',title:'Birthday surprise',summary:'Zander\'s birthday is a week before Joelle\'s. The Crew throws her a surprise party. She had a date planned. She and Charlie still haven\'t spoken.',colId:'col-b',ep:'Ep 8',chars:'Joelle, Charlie, Zander, Henri, Jeorge',loc:'Berlin, Germany',act:'act2'},
+      {id:'hs-c8',title:'Charlie asks Joelle on a date',summary:'LUXFER shoe release party in Berlin. Charlie finally asks Joelle on a proper date.',colId:'col-c',ep:'Ep 9',chars:'Joelle, Charlie',loc:'Berlin, Germany',act:'act3'},
+      {id:'hs-c9',title:'Full Send — São Paulo',summary:'World Skate Championships. Joelle goes for one last trip. She and Charlie discuss what comes next.',colId:'col-c',ep:'Ep 10',chars:'Joelle, Charlie, Zander, Henri, Jeorge',loc:'São Paulo, Brazil',act:'act3'},
+    ],
+    episodes: [
+      {title:'Ollie',logline:'After abruptly quitting modeling, Joelle lands a job and is immediately sent to Berlin. She meets the Crew — one in particular seems to either love her or hate her.',notes:'Ep 1. Introduce all characters. Establish Berlin as home base. Charlie\'s instant attraction, Joelle\'s instant friend-zone.',scenes:[]},
+      {title:'Copenhagen Open',logline:'First trip. The guys make fun of how much Joelle packed. In Copenhagen, she goes on her first Euro date — it does not go as expected.',notes:'Ep 2. Copenhagen Open competition.',scenes:[]},
+      {title:'Slide',logline:'Back in Berlin, the Crew gives Joelle a nickname and takes her to the skate park. Zander invites her to his DJ set. Charlie has to escort her — as friends.',notes:'Ep 3.',scenes:[]},
+      {title:'Coming Out of Retirement',logline:'An old friend asks Joelle to come out of retirement for a huge brand campaign. The Crew convinces her to say yes — if she can bring them along to meet models.',notes:'Ep 4.',scenes:[]},
+      {title:'Rome, Italy',logline:'Joelle goes on a Roman date — vespa, flowers, old-school. She realizes he isn\'t genuine. The Crew celebrates their competition win with a night out in Rome.',notes:'Ep 5. World Skate Street + Park Event.',scenes:[]},
+      {title:'Manual',logline:'Joelle makes the guys go to Pilates. They suffer. On her first Berlin date, Charlie recruits the Crew to spy on her.',notes:'Ep 6.',scenes:[]},
+      {title:'Budapest Olympic',logline:'Joelle goes on a coffee date that evolves into a club night — where the Crew is. Charlie gets jealous, leaves with another girl. Heated conversation with Joelle that night.',notes:'Ep 7. Olympic Qualifier Series stop.',scenes:[]},
+      {title:'Birthday Suit',logline:'Zander\'s birthday. The Crew throws Joelle a surprise party — she had a date planned. She and Charlie haven\'t spoken since Budapest.',notes:'Ep 8.',scenes:[]},
+      {title:'Gnarly',logline:'The LUXFER brand collab is coming to an end. LUXFER throws a shoe release party in Berlin. Charlie finally asks Joelle on a proper date.',notes:'Ep 9.',scenes:[]},
+      {title:'Full Send',logline:'The Crew competes at the World Skate Championships in Brazil. Joelle goes for one last trip. She and Charlie discuss what comes next.',notes:'Ep 10. Season finale. Season 2: Joelle called back to LA, Crew follows for Olympics.',scenes:[]},
+    ],
+    characters: [
+      {name:'Joelle',role:'Protagonist',age:'25',personality:'Charming and personable — everyone who meets her likes her. Always felt slightly too much: too chaotic, too artistic, too sensual. Finally lets herself be that.',backstory:'Former model who doesn\'t want to model anymore. Got her bachelor\'s online while modeling. A former modeling contact helped her land the LUXFER assistant creative director job. Large social media following.',wantneed:'Wants: to figure out who she is beyond beauty and labels. To stop performing. Needs: to let go, to play, to fully send it into the unknown.',arc:'Uses travel, dating, and the Crew to peel back her public image. Learns that love is the lesson, not the endgame.',relationships:'Charlie (will-they-won\'t-they, major tension). Henri (bonded as the only two Black people and the newbies). Zander (chaos best friend). Jeorge (mentor/big brother energy).',notes:'Dream casting: Ryan Destiny. Has a large social media following where she gives advice.',inspo:[]},
+      {name:'Charlie',role:'Lead / Love Interest',age:'27',personality:'Pro skateboarder signed to New Balance Numeric. Calm and stoic of the Crew. Charming, outgoing, confident — not in a showy way. A huge flirt and ladies man.',backstory:'Injured himself at previous Olympics. Now mentors the other skateboarders while secretly planning retirement after the next Olympics. One semester left to graduate. Family money. Owns the Crew\'s apartment. Always well-dressed — clothes from previous modeling gigs.',wantneed:'Wants: Joelle. Needs: to figure out who he is after skating.',arc:'Instantly falls for Joelle. She friend-zones him immediately. The whole season is push and pull. Budapest is the breaking point. São Paulo is the resolution.',relationships:'Joelle (will-they-won\'t-they). The Crew (owner/mentor).',notes:'Dream casting: Dodi El\'circy.',inspo:[]},
+      {name:'Zander',role:'Supporting — The Wild One',age:'25',personality:'Pro skateboarder signed to NB#. The playboy and wild one of the Crew. Funny, outgoing, confident — but deeply introspective.',backstory:'Raised by a single mother. Worked hard to afford to look the part and compete. DJs on the side.',wantneed:'Wants: fun, freedom, to nail every trick. Needs: to channel the hot-headedness into something productive.',arc:'Loves hard, helps his friends. His birthday is a week before Joelle\'s — the surprise party episode.',relationships:'Joelle (chaos best friend). The Crew.',notes:'Dream casting: Nicolas Vansteenberghe. Known to smash a board when he misses a trick.',inspo:[]},
+      {name:'Henri',role:'Supporting — The Rookie',age:'23',personality:'Pro skateboarder signed to NB#. Quiet, somewhat shy at first, observant. Clean cut with a bit of an edge. Rookie of the Crew.',backstory:'Comes from a rich family. Tries to hide it. Coming from money and being Black, he\'s always been an outsider in the skateboarding world.',wantneed:'Wants: to prove himself. Needs: to stop hiding who he is.',arc:'He and Joelle bond as the only two Black people on the Crew and the newbies. Different bond than the others.',relationships:'Joelle (special bond — outsider kinship). The Crew.',notes:'Dream casting: Lukas Sabbat.',inspo:[]},
+      {name:'Jeorge',role:'Supporting — The Coach',age:'35',personality:'Manager and coach of the Berlin Crew. Former skateboarder. Big brother of the Crew.',backstory:'Stopped competing and became a coach. Organizes all travel and appearances. Detail-oriented, easy-going.',wantneed:'For skateboarding is LIFE — even off the board.',arc:'The glue. The Crew wouldn\'t function without him.',relationships:'The whole Crew. Mentor/big brother.',notes:'Gives the best advice on life, dating, and business.',inspo:[]},
+    ],
+    locations: [
+      {name:'Berlin, Germany',type:'City — Home Base',period:'Present',desc:'Home base and training grounds for the Crew. Charlie owns the apartment they all live in.',vibe:'Big, loud, and diverse. Techno and EDM. Authenticity and open-mindedness are key. Love like Berlin.',significance:'Every episode returns here. Joelle\'s new world.',notes:'',inspo:[]},
+      {name:'Crew Apt',type:'Interior — Berlin',period:'Present',desc:'Charlie\'s apartment where the entire Crew lives.',vibe:'Skater house energy — lived-in, loud, full of boards and clothes from modeling gigs.',significance:'Home base for the found family.',notes:'',inspo:[]},
+      {name:'Skate Park',type:'Exterior',period:'Present',desc:'Where the Crew trains. Where Joelle learns to skate in Ep 3.',vibe:'Grungy, electric, male-dominated. Joelle\'s first real entry into their world.',significance:'Where Joelle officially becomes part of the Crew.',notes:'',inspo:[]},
+      {name:'Copenhagen, Denmark',type:'City',period:'Present',desc:'First competition stop. Copenhagen Open.',vibe:'Casual, low-pressure, Scandinavian. The dates are easy and unhurried.',significance:'Joelle\'s first Euro date. Doesn\'t go as expected.',notes:'',inspo:[]},
+      {name:'Rome, Italy',type:'City',period:'Present',desc:'World Skate Street + Park Event. Joelle\'s former city (La Seconda Me connection).',vibe:'Italian Pop & Trap in clubs, old-school Italian classics on dates. Hot and cold. Sensuality and games.',significance:'Ep 5. The Roman date teaches Joelle about performance vs. authenticity.',notes:'',inspo:[]},
+      {name:'Budapest, Hungary',type:'City',period:'Present',desc:'Olympic Qualifier Series stop.',vibe:'Dramatic. Where the biggest tension between Joelle and Charlie explodes.',significance:'Ep 7. The heated conversation that changes everything.',notes:'',inspo:[]},
+      {name:'São Paulo, Brazil',type:'City',period:'Present',desc:'World Skate Championships.',vibe:'Fun, flirty, confident. Joelle leans into her sensual side.',significance:'Ep 10. The Full Send. Joelle and Charlie finally talk about what comes next.',notes:'',inspo:[]},
+    ],
+    writingScenes: [],
+  }
+};
+
+
+// ═══════════ MULTI-PROJECT STATE ═══════════
+let currentProjectId = 'lsm';
+
+function switchProject(id) {
+  // Save current project first
+  saveCurrentProjectToState();
+  // Switch
+  currentProjectId = id;
+  document.querySelectorAll('.proj-btn').forEach(b => b.classList.remove('active-proj'));
+  const btn = document.getElementById('proj-btn-' + id);
+  if(btn) btn.classList.add('active-proj');
+  // Load project
+  loadProject(id);
+  debouncedSave();
+}
+
+function saveCurrentProjectToState() {
+  if(!currentProjectId || !PRELOADED_PROJECTS[currentProjectId]) return;
+  const p = PRELOADED_PROJECTS[currentProjectId];
+  // Save planning fields back
+  const fields = ['logline','genre','tone','setting','themes'];
+  fields.forEach(id => { const el = document.getElementById(id); if(el) p[id] = el.value; });
+  const inspo = document.getElementById('inspiration-field'); if(inspo) p.inspiration = inspo.value;
+  ['act1','act2','act3'].forEach(id => { const el = document.getElementById(id); if(el) p[id] = el.value; });
+  const wn = document.getElementById('writer-notes'); if(wn) p.writerNotes = wn.value;
+  const wi = document.getElementById('what-ifs'); if(wi) p.whatIfs = wi.value;
+  // Save state arrays
+  p.beats = state.beats;
+  p.cards = state.cards;
+  p.boardCols = state.boardCols;
+  p.episodes = state.episodes;
+  p.characters = state.characters;
+  p.locations = state.locations;
+  p.writingScenes = state.writingScenes;
+}
+
+function loadProject(id) {
+  const p = PRELOADED_PROJECTS[id];
+  if(!p) return;
+  // Load into state
+  state.projectName = p.name;
+  state.projectType = p.type || 'series';
+  state.beats = JSON.parse(JSON.stringify(p.beats || []));
+  state.boardCols = JSON.parse(JSON.stringify(p.boardCols || []));
+  state.cards = JSON.parse(JSON.stringify(p.cards || []));
+  state.episodes = JSON.parse(JSON.stringify(p.episodes || []));
+  state.characters = JSON.parse(JSON.stringify(p.characters || []));
+  state.locations = JSON.parse(JSON.stringify(p.locations || []));
+  state.writingScenes = JSON.parse(JSON.stringify(p.writingScenes || []));
+  state.activeChar = null; state.activeLoc = null; state.activeEp = null; state.activeWritingScene = null;
+  // Reset UI
+  document.getElementById('beat-board').innerHTML = '';
+  beatCount = 0;
+  state.beats.forEach(b => {
+    beatCount = Math.max(beatCount, b.id || 0);
+    const div = document.createElement('div');
+    div.className = 'beat-item'; div.dataset.id = b.id;
+    div.style.cssText = 'display:flex;align-items:flex-start;gap:12px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:12px';
+    div.innerHTML = `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold-d);min-width:24px;padding-top:2px">${String(b.id).padStart(2,'0')}</span>
+      <input type="text" value="${(b.text||'').replace(/"/g,'&quot;')}" placeholder="Beat..." style="flex:1" oninput="updateBeat(${b.id},this.value)">
+      <button class="btn btn-ghost btn-sm" onclick="removeBeat(${b.id},this.closest('[data-id]'))">✕</button>`;
+    document.getElementById('beat-board').appendChild(div);
+  });
+  // Planning fields
+  setTimeout(() => {
+    ['logline','genre','tone','setting','themes'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = p[id] || '';
+    });
+    const inspo = document.getElementById('inspiration-field'); if(inspo) inspo.value = p.inspiration || '';
+    ['act1','act2','act3'].forEach(id => { const el = document.getElementById(id); if(el) el.value = p[id] || ''; });
+    const wn = document.getElementById('writer-notes'); if(wn) wn.value = p.writerNotes || '';
+    const wi = document.getElementById('what-ifs'); if(wi) wi.value = p.whatIfs || '';
+  }, 50);
+  // UI updates
+  setType(state.projectType, true);
+  renderBoard();
+  renderEpSidebar();
+  renderCharList();
+  renderLocList();
+  renderWritingNav();
+  document.getElementById('char-detail').innerHTML = '<div class="empty-state"><div class="empty-icon">🎭</div><div class="empty-title">Select a character</div></div>';
+  document.getElementById('loc-detail').innerHTML = '<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Select a location</div></div>';
+  document.getElementById('ep-detail').innerHTML = '<div class="empty-state"><div class="empty-icon">📺</div><div class="empty-title">Select an episode</div></div>';
+  showToast('Switched to ' + p.name + ' ✦');
+}
+
+// ═══════════ STATE ═══════════
+const state = {
+  projectName:'Untitled Project', projectType:'series',
+  beats:[], boardCols:[
+    {id:'col-1',label:'Act I',color:'#4a6a4a'},
+    {id:'col-2',label:'Act II',color:'#6a4a2a'},
+    {id:'col-3',label:'Act III',color:'#6a2a2a'},
+  ],
+  cards:[], episodes:[], characters:[], locations:[], writingScenes:[],
+  activeChar:null, activeLoc:null, activeEp:null, activeWritingScene:null,
+  heroUploadTarget:null, inspoUploadTarget:null, writeMode:'screenplay',
+  penSize:1, penColor:'#1c1a16', planningData:{},
+};
+let darkPaper=false, beatCount=0;
+
+// ═══════════ GOOGLE DRIVE SYNC ═══════════
+let gapiReady=false, gisReady=false, tokenClient=null, accessToken=null;
+let driveFileId=null, syncDebounce=null, isSyncing=false, skipDrive=false;
+
+function setSyncStatus(status, label){
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-label');
+  const bar=document.getElementById('sync-bar');
+  bar.style.display='flex';
+  dot.className='sync-dot '+status;
+  lbl.textContent=label;
+}
+
+window.gapiLoaded=function(){
+  gapi.load('client',async()=>{
+    await gapi.client.init({apiKey:GOOGLE_API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
+    gapiReady=true;
+    checkReady();
+  });
+};
+
+window.gisLoaded=function(){
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GOOGLE_CLIENT_ID,
+    scope:'https://www.googleapis.com/auth/drive.file',
+    callback:(resp)=>{
+      if(resp.error){
+        // Silent sign-in failed — show auth screen for manual login
+        if(resp.error==='interaction_required'||resp.error==='access_denied'){
+          document.getElementById('auth-screen').style.display='flex';
+          document.getElementById('auth-screen').style.opacity='1';
+        } else {
+          setSyncStatus('error','Auth failed');
+          loadFromLocal();renderAll();
+        }
+        return;
+      }
+      accessToken=resp.access_token;
+      gapi.client.setToken({access_token:accessToken});
+      onSignedIn();
+    }
+  });
+  gisReady=true;
+  checkReady();
+};
+
+function checkReady(){
+  if(gapiReady&&gisReady&&!skipDrive){
+    const hint=localStorage.getItem('nb_drive_hint');
+    if(hint) silentSignIn();
+    // else: auth screen stays visible, user must click
+  }
+}
+
+function hideAuthScreen(){
+  const el=document.getElementById('auth-screen');
+  el.style.transition='opacity 0.3s ease';
+  el.style.opacity='0';
+  setTimeout(()=>el.style.display='none',320);
+}
+
+function silentSignIn(){
+  // Try silent — if fails, token callback will handle it
+  tokenClient.requestAccessToken({prompt:'none'});
+}
+
+function signIn(){
+  hideAuthScreen();
+  if(!gapiReady||!gisReady){showToast('Still loading, try again');return}
+  tokenClient.requestAccessToken({prompt:'consent'});
+}
+
+function skipAuth(){
+  skipDrive=true;
+  hideAuthScreen();
+  loadFromLocal();
+  renderAll();
+  setSyncStatus('','No sync');
+  document.getElementById('sync-bar').style.display='none';
+  document.getElementById('drive-btn').style.display='flex';
+}
+
+async function onSignedIn(){
+  localStorage.setItem('nb_drive_hint','1');
+  hideAuthScreen();
+  setSyncStatus('syncing','Connecting...');
+
+  try{
+    // Find or create the folder
+    const folderResp=await gapi.client.drive.files.list({
+      q:`name='${DRIVE_FOLDER}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      fields:'files(id)'
+    });
+    let folderId;
+    if(folderResp.result.files.length){
+      folderId=folderResp.result.files[0].id;
+    } else {
+      const f=await gapi.client.drive.files.create({
+        resource:{name:DRIVE_FOLDER,mimeType:'application/vnd.google-apps.folder'},
+        fields:'id'
+      });
+      folderId=f.result.id;
+    }
+
+    // Find existing project file
+    const fileResp=await gapi.client.drive.files.list({
+      q:`name='${DRIVE_FILE_NAME}' and '${folderId}' in parents and trashed=false`,
+      fields:'files(id,modifiedTime)'
+    });
+
+    if(fileResp.result.files.length){
+      driveFileId=fileResp.result.files[0].id;
+      await loadFromDrive();
+    } else {
+      // No file yet — create it
+      await createDriveFile(folderId);
+      loadFromLocal();
+      renderAll();
+    }
+
+    setSyncStatus('synced','Synced');
+    showToast('Drive connected ✦');
+
+    // Show user avatar if possible
+    try{
+      const me=await gapi.client.request({path:'https://www.googleapis.com/oauth2/v2/userinfo'});
+      if(me.result.picture){
+        document.getElementById('drive-btn').innerHTML=`<img src="${me.result.picture}" class="drive-avatar"> ${me.result.name?.split(' ')[0]||'Drive'}`;
+        document.getElementById('drive-btn').classList.add('connected');
+        document.getElementById('drive-btn').style.display='flex';
+      }
+    }catch(e){}
+
+  } catch(err){
+    console.error(err);
+    setSyncStatus('error','Error');
+    loadFromLocal();
+    renderAll();
+  }
+}
+
+async function createDriveFile(folderId){
+  const content=JSON.stringify(getSaveableState());
+  const meta={name:DRIVE_FILE_NAME,parents:[folderId]};
+  const form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+  form.append('file',new Blob([content],{type:'application/json'}));
+  const resp=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+    method:'POST',headers:{Authorization:`Bearer ${accessToken}`},body:form
+  });
+  const data=await resp.json();
+  driveFileId=data.id;
+}
+
+async function loadFromDrive(){
+  try{
+    const resp=await gapi.client.drive.files.get({fileId:driveFileId,alt:'media'});
+    const saved=JSON.parse(resp.body);
+    applyState(saved);
+    renderAll();
+    setSyncStatus('synced','Synced');
+  } catch(e){
+    console.error('Load from Drive failed:',e);
+    loadFromLocal();
+    renderAll();
+  }
+}
+
+async function saveToDrive(){
+  if(!driveFileId||isSyncing)return;
+  isSyncing=true;
+  setSyncStatus('syncing','Saving...');
+  try{
+    const content=JSON.stringify(getSaveableState());
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,{
+      method:'PATCH',
+      headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},
+      body:content
+    });
+    // Also save locally as backup
+    saveToLocal();
+    setSyncStatus('synced','Saved ✦');
+    showSaveIndicator();
+    setTimeout(()=>setSyncStatus('synced','Synced'),2000);
+  } catch(e){
+    console.error('Drive save failed:',e);
+    setSyncStatus('error','Save failed');
+    saveToLocal();
+  }
+  isSyncing=false;
+}
+
+function debouncedSave(){
+  clearTimeout(syncDebounce);
+  syncDebounce=setTimeout(()=>{
+    if(driveFileId) saveToDrive();
+    else saveToLocal();
+  },1200);
+}
+
+// LOCAL STORAGE FALLBACK
+const LS_KEY='notebook_v2';
+function saveToLocal(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(getSaveableState()))}catch(e){}
+}
+function loadFromLocal(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw)applyState(JSON.parse(raw));
+  }catch(e){}
+}
+
+function getSaveableState(){
+  return{
+    projectName:state.projectName, projectType:state.projectType,
+    beats:state.beats, boardCols:state.boardCols, cards:state.cards,
+    episodes:state.episodes, characters:state.characters, locations:state.locations,
+    writingScenes:state.writingScenes, darkPaper:darkPaper, writeMode:state.writeMode,
+    planningData:getPlanningData(),
+  };
+}
+
+function getPlanningData(){
+  return{
+    logline:document.getElementById('logline')?.value||'',
+    genre:document.getElementById('genre')?.value||'',
+    tone:document.getElementById('tone')?.value||'',
+    setting:document.getElementById('setting')?.value||'',
+    themes:document.getElementById('themes')?.value||'',
+    inspiration:document.getElementById('inspiration-field')?.value||'',
+    act1:document.getElementById('act1')?.value||'',
+    act2:document.getElementById('act2')?.value||'',
+    act3:document.getElementById('act3')?.value||'',
+    writerNotes:document.getElementById('writer-notes')?.value||'',
+    whatIfs:document.getElementById('what-ifs')?.value||'',
+  };
+}
+
+function applyState(saved){
+  if(!saved)return;
+  Object.assign(state,{
+    projectName:saved.projectName||state.projectName,
+    projectType:saved.projectType||'series',
+    beats:saved.beats||[], boardCols:saved.boardCols||state.boardCols,
+    cards:saved.cards||[], episodes:saved.episodes||[],
+    characters:saved.characters||[], locations:saved.locations||[],
+    writingScenes:saved.writingScenes||[],
+    writeMode:saved.writeMode||'screenplay',
+  });
+  if(saved.darkPaper){darkPaper=true;document.body.classList.add('dark-paper');document.getElementById('paper-toggle-btn').textContent='☀ Light Paper'}
+  if(saved.planningData){
+    const p=saved.planningData;
+    setTimeout(()=>{
+      ['logline','genre','tone','setting','themes'].forEach(id=>{const el=document.getElementById(id);if(el&&p[id])el.value=p[id]});
+      const inspo=document.getElementById('inspiration-field');if(inspo&&p.inspiration)inspo.value=p.inspiration;
+      ['act1','act2','act3'].forEach(id=>{const el=document.getElementById(id);if(el&&p[id])el.value=p[id]});
+      const wn=document.getElementById('writer-notes');if(wn&&p.writerNotes)wn.value=p.writerNotes;
+      const wi=document.getElementById('what-ifs');if(wi&&p.whatIfs)wi.value=p.whatIfs;
+    },100);
+  }
+}
+
+function renderAll(){
+  document.getElementById('proj-name').textContent=state.projectName;
+  setType(state.projectType,true);
+  // Beats
+  state.beats.forEach(b=>{
+    beatCount=Math.max(beatCount,b.id||0);
+    const div=document.createElement('div');
+    div.className='beat-item';div.dataset.id=b.id;
+    div.style.cssText='display:flex;align-items:flex-start;gap:12px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:12px';
+    div.innerHTML=`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold-d);min-width:24px;padding-top:2px">${String(b.id).padStart(2,'0')}</span>
+      <input type="text" value="${b.text||''}" placeholder="Beat..." style="flex:1" oninput="updateBeat(${b.id},this.value)">
+      <button class="btn btn-ghost btn-sm" onclick="removeBeat(${b.id},this.closest('[data-id]'))">✕</button>`;
+    document.getElementById('beat-board').appendChild(div);
+  });
+  renderBoard();
+}
+
+function showSaveIndicator(){
+  const el=document.getElementById('save-indicator');
+  el.classList.add('visible');
+  clearTimeout(window._sit);
+  window._sit=setTimeout(()=>el.classList.remove('visible'),2500);
+}
+
+// ═══════════ TABS ═══════════
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['planning','storyboard','episodes','characters','locations','writing'][i]===name);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='storyboard')renderBoard();
+  if(name==='episodes')renderEpSidebar();
+  if(name==='characters')renderCharList();
+  if(name==='locations')renderLocList();
+  if(name==='writing')renderWritingNav();
+}
+
+// ═══════════ PROJECT ═══════════
+function editProjectName(){
+  const n=prompt('Project name:',state.projectName);
+  if(n&&n.trim()){state.projectName=n.trim();document.getElementById('proj-name').textContent=n.trim();debouncedSave()}
+}
+function setType(t,silent){
+  state.projectType=t;
+  document.getElementById('type-series').classList.toggle('active-type',t==='series');
+  document.getElementById('type-book').classList.toggle('active-type',t==='book');
+  const lbl=t==='series'?'Episodes':'Chapters';
+  const el=document.getElementById('ep-sidebar-label');if(el)el.textContent=lbl;
+  if(!silent){showToast(t==='series'?'Series mode':'Book mode');debouncedSave()}
+}
+
+// ═══════════ PLANNING ═══════════
+function addBeat(){
+  beatCount++;
+  const b={id:beatCount,text:''};
+  state.beats.push(b);
+  const div=document.createElement('div');
+  div.className='beat-item';div.dataset.id=b.id;
+  div.style.cssText='display:flex;align-items:flex-start;gap:12px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:12px';
+  div.innerHTML=`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold-d);min-width:24px;padding-top:2px">${String(beatCount).padStart(2,'0')}</span>
+    <input type="text" placeholder="Beat ${beatCount}..." style="flex:1" oninput="updateBeat(${b.id},this.value)">
+    <button class="btn btn-ghost btn-sm" onclick="removeBeat(${b.id},this.closest('[data-id]'))">✕</button>`;
+  document.getElementById('beat-board').appendChild(div);
+  debouncedSave();
+}
+function updateBeat(id,v){const b=state.beats.find(x=>x.id===id);if(b){b.text=v;debouncedSave()}}
+function removeBeat(id,el){state.beats=state.beats.filter(x=>x.id!==id);el?.remove();debouncedSave()}
+
+// ═══════════ STORYBOARD ═══════════
+let dragCard=null;
+function renderBoard(){
+  const cont=document.getElementById('board-columns');cont.innerHTML='';
+  state.boardCols.forEach(col=>{
+    const cards=state.cards.filter(c=>c.colId===col.id);
+    const colEl=document.createElement('div');colEl.className='board-col';colEl.dataset.colId=col.id;
+    colEl.innerHTML=`<div class="col-header"><span><span class="col-label-dot" style="background:${col.color}"></span>${col.label}</span><span style="font-size:9px;color:var(--text-m)">${cards.length}</span></div>
+      <div class="col-cards" id="cards-${col.id}" ondragover="event.preventDefault()" ondrop="onDrop(event,'${col.id}')">
+        ${cards.map(c=>cardHTML(c)).join('')}
+      </div>
+      <button class="add-card-btn" onclick="openCardModal('${col.id}')">+ Add scene</button>`;
+    cont.appendChild(colEl);
+  });
+  document.querySelectorAll('.scene-card').forEach(c=>{
+    c.addEventListener('dragstart',e=>{dragCard=e.currentTarget.dataset.cardId;e.currentTarget.classList.add('dragging')});
+    c.addEventListener('dragend',e=>e.currentTarget.classList.remove('dragging'));
+  });
+}
+function cardHTML(c){
+  const chars=c.chars?c.chars.split(',').map(s=>s.trim()).filter(Boolean):[];
+  return `<div class="scene-card" draggable="true" data-card-id="${c.id}">
+    ${c.ep?`<div class="card-ep">${c.ep}</div>`:''}
+    <div class="card-title">${c.title||'Untitled'}</div>
+    ${c.summary?`<div class="card-summary">${c.summary}</div>`:''}
+    <div class="card-tags">${chars.map(ch=>`<span class="card-tag char">◉ ${ch}</span>`).join('')}${c.loc?`<span class="card-tag loc">📍 ${c.loc}</span>`:''}</div>
+    <div class="card-actions">
+      <button class="btn btn-ghost btn-sm" onclick="editCard('${c.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteCard('${c.id}')">Delete</button>
+    </div>
+  </div>`;
+}
+function onDrop(e,colId){e.preventDefault();if(dragCard){const c=state.cards.find(x=>x.id===dragCard);if(c){c.colId=colId;renderBoard();debouncedSave()}}dragCard=null}
+
+let openCardCol=null,editCardId=null;
+function openCardModal(colId){
+  openCardCol=colId||state.boardCols[0]?.id;editCardId=null;
+  ['card-title','card-summary','card-ep','card-chars','card-loc'].forEach(id=>document.getElementById(id).value='');
+  openModal('card-modal');
+}
+function editCard(id){
+  const c=state.cards.find(x=>x.id===id);if(!c)return;
+  editCardId=id;openCardCol=c.colId;
+  document.getElementById('card-title').value=c.title||'';
+  document.getElementById('card-summary').value=c.summary||'';
+  document.getElementById('card-ep').value=c.ep||'';
+  document.getElementById('card-chars').value=c.chars||'';
+  document.getElementById('card-loc').value=c.loc||'';
+  document.getElementById('card-act').value=c.act||'act1';
+  openModal('card-modal');
+}
+function saveCard(){
+  const title=document.getElementById('card-title').value.trim();
+  if(!title){showToast('Title required');return}
+  if(editCardId){Object.assign(state.cards.find(x=>x.id===editCardId),getCardForm())}
+  else{state.cards.push({id:'card-'+Date.now(),...getCardForm(),colId:openCardCol})}
+  closeModal('card-modal');renderBoard();debouncedSave();showToast('Saved');
+}
+function getCardForm(){return{title:document.getElementById('card-title').value.trim(),summary:document.getElementById('card-summary').value.trim(),act:document.getElementById('card-act').value,ep:document.getElementById('card-ep').value.trim(),chars:document.getElementById('card-chars').value.trim(),loc:document.getElementById('card-loc').value.trim()}}
+function deleteCard(id){state.cards=state.cards.filter(c=>c.id!==id);renderBoard();debouncedSave();showToast('Deleted')}
+function addBoardCol(){const l=prompt('Column name:');if(l){state.boardCols.push({id:'col-'+Date.now(),label:l.trim(),color:'#4a4a6a'});renderBoard();debouncedSave()}}
+function setBoardView(el){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
+
+// ═══════════ EPISODES ═══════════
+function renderEpSidebar(){
+  const lbl=state.projectType==='series'?'Ep':'Ch';
+  document.getElementById('ep-items').innerHTML=state.episodes.map((ep,i)=>`
+    <div class="ep-item${state.activeEp===i?' active':''}" onclick="selectEp(${i})">
+      <div class="ep-num">${lbl}${i+1}</div>
+      <div class="ep-info"><div class="ep-name">${ep.title||'Untitled'}</div><div class="ep-meta">${state.cards.filter(c=>c.ep&&c.ep.includes(String(i+1))).length} scenes</div></div>
+    </div>`).join('');
+}
+function addEpisode(){
+  state.editingEpIdx=null;
+  ['ep-title-input','ep-logline','ep-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ep-modal-title').textContent=state.projectType==='series'?'New Episode':'New Chapter';
+  openModal('ep-modal');
+}
+function saveEpisode(){
+  const ep={title:document.getElementById('ep-title-input').value.trim(),logline:document.getElementById('ep-logline').value.trim(),notes:document.getElementById('ep-notes').value.trim(),scenes:[]};
+  if(state.editingEpIdx!=null)state.episodes[state.editingEpIdx]=ep;
+  else state.episodes.push(ep);
+  closeModal('ep-modal');renderEpSidebar();
+  if(state.editingEpIdx!=null)selectEp(state.editingEpIdx);
+  debouncedSave();showToast('Saved');
+}
+function selectEp(i){state.activeEp=i;renderEpSidebar();renderEpDetail(i)}
+function renderEpDetail(i){
+  const ep=state.episodes[i];
+  const lbl=state.projectType==='series'?'Episode':'Chapter';
+  const rel=state.cards.filter(c=>c.ep&&c.ep.includes(String(i+1)));
+  document.getElementById('ep-detail').innerHTML=`
+    <div class="sec-head"><div><div class="sec-title">${ep.title||'Untitled'}</div><div class="sec-sub">${lbl} ${i+1}</div></div>
+    <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="editEp(${i})">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteEp(${i})">Delete</button></div></div>
+    ${ep.logline?`<div style="font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:var(--cream-d);margin-bottom:20px;line-height:1.6">"${ep.logline}"</div>`:''}
+    <div class="detail-grid" style="margin-bottom:24px">
+      <div class="detail-card"><div class="detail-card-label">Notes</div><p style="font-size:12px;color:var(--text-d);line-height:1.6">${ep.notes||'No notes yet.'}</p></div>
+      <div class="detail-card"><div class="detail-card-label">Scene Count</div><p style="font-size:28px;font-family:'Cormorant Garamond',serif;color:var(--gold)">${rel.length}</p></div>
+    </div>
+    <div class="divider-label">Act Breakdown</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+      ${['Act I','Act II','Act III'].map(a=>`<div class="act-card"><div class="act-card-label">${a}</div><textarea class="script-field" rows="4" placeholder="What happens in ${a}?"></textarea></div>`).join('')}
+    </div>
+    ${rel.length?`<div class="divider-label">Scene Cards</div><div style="display:flex;flex-direction:column;gap:8px">${rel.map(c=>`<div class="appearance-row"><span class="app-ep">${c.ep}</span><span class="app-scene">${c.title}</span>${c.loc?`<span class="card-tag loc" style="font-size:9px">📍 ${c.loc}</span>`:''}</div>`).join('')}</div>`:''}
+  `;
+}
+function editEp(i){state.editingEpIdx=i;const ep=state.episodes[i];document.getElementById('ep-title-input').value=ep.title||'';document.getElementById('ep-logline').value=ep.logline||'';document.getElementById('ep-notes').value=ep.notes||'';openModal('ep-modal')}
+function deleteEp(i){if(confirm('Delete?')){state.episodes.splice(i,1);state.activeEp=null;document.getElementById('ep-detail').innerHTML='<div class="empty-state"><div class="empty-icon">📺</div><div class="empty-title">No episode selected</div></div>';renderEpSidebar();debouncedSave()}}
+
+// ═══════════ CHARACTERS ═══════════
+function renderCharList(){
+  document.getElementById('char-items').innerHTML=state.characters.map((c,i)=>`
+    <div class="entity-item${state.activeChar===i?' active':''}" onclick="selectChar(${i})">
+      <div class="entity-avatar">${c.heroImg?`<img src="${c.heroImg}">`:(c.name||'?')[0]}</div>
+      <div class="entity-info"><div class="entity-name">${c.name||'Unnamed'}</div><div class="entity-sub">${c.role||'Character'}</div></div>
+    </div>`).join('');
+}
+function addCharacter(){document.getElementById('char-name-input').value='';document.getElementById('char-role-input').value='';openModal('char-modal')}
+function saveCharacter(){
+  const name=document.getElementById('char-name-input').value.trim();
+  if(!name){showToast('Name required');return}
+  state.characters.push({name,role:document.getElementById('char-role-input').value.trim(),inspo:[]});
+  closeModal('char-modal');renderCharList();selectChar(state.characters.length-1);debouncedSave();showToast('Added');
+}
+function selectChar(i){state.activeChar=i;renderCharList();renderCharDetail(i)}
+function renderCharDetail(i){
+  const c=state.characters[i];
+  const apps=state.cards.filter(card=>card.chars&&card.chars.toLowerCase().includes(c.name.toLowerCase()));
+  document.getElementById('char-detail').innerHTML=`
+    <div class="entity-hero">
+      <div class="hero-img" onclick="triggerHeroUpload(${i},'char')">
+        ${c.heroImg?`<img src="${c.heroImg}" style="display:block">`:`<div class="hero-placeholder"><span>🎭</span><p>Add photo</p></div>`}
+        <div class="upload-overlay">Upload</div>
+      </div>
+      <div class="hero-fields">
+        <div class="field"><label>Full Name</label><input type="text" value="${c.name}" oninput="updateChar(${i},'name',this.value)"></div>
+        <div class="field"><label>Role</label><input type="text" value="${c.role||''}" placeholder="Protagonist..." oninput="updateChar(${i},'role',this.value)"></div>
+        <div class="field"><label>Age</label><input type="text" value="${c.age||''}" placeholder="Age or range" oninput="updateChar(${i},'age',this.value)"></div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="field"><label>Personality</label><textarea rows="3" placeholder="Traits, quirks..." oninput="updateChar(${i},'personality',this.value)">${c.personality||''}</textarea></div>
+      <div class="field"><label>Backstory</label><textarea rows="3" placeholder="Where they came from..." oninput="updateChar(${i},'backstory',this.value)">${c.backstory||''}</textarea></div>
+      <div class="field"><label>Want vs. Need</label><textarea rows="3" placeholder="What do they want vs. need?" oninput="updateChar(${i},'wantneed',this.value)">${c.wantneed||''}</textarea></div>
+      <div class="field"><label>Arc</label><textarea rows="3" placeholder="How do they change?" oninput="updateChar(${i},'arc',this.value)">${c.arc||''}</textarea></div>
+    </div>
+    <div class="field"><label>Relationships</label><textarea rows="2" oninput="updateChar(${i},'relationships',this.value)">${c.relationships||''}</textarea></div>
+    <div class="field"><label>Notes</label><textarea rows="3" oninput="updateChar(${i},'notes',this.value)">${c.notes||''}</textarea></div>
+    <div><div class="divider-label">Inspiration Board</div>
+      <div class="inspo-grid" id="char-inspo-${i}">
+        ${(c.inspo||[]).map((img,j)=>`<div class="inspo-cell"><img src="${img}"><button class="inspo-del" onclick="removeInspo('char',${i},${j})">✕</button></div>`).join('')}
+        <div class="inspo-add" onclick="triggerInspoUpload(${i},'char')">+</div>
+      </div>
+    </div>
+    ${apps.length?`<div><div class="divider-label">Appearances (${apps.length})</div><div class="appearances-list">${apps.map(a=>`<div class="appearance-row"><span class="app-ep">${a.ep||'—'}</span><span class="app-scene">${a.title}</span></div>`).join('')}</div></div>`:''}
+    <div style="padding-top:8px"><button class="btn btn-danger btn-sm" onclick="deleteChar(${i})">Delete Character</button></div>
+  `;
+}
+function updateChar(i,k,v){state.characters[i][k]=v;renderCharList();debouncedSave()}
+function deleteChar(i){if(confirm('Delete?')){state.characters.splice(i,1);state.activeChar=null;document.getElementById('char-detail').innerHTML='<div class="empty-state"><div class="empty-icon">🎭</div><div class="empty-title">No character selected</div></div>';renderCharList();debouncedSave()}}
+
+// ═══════════ LOCATIONS ═══════════
+function renderLocList(){
+  document.getElementById('loc-items').innerHTML=state.locations.map((l,i)=>`
+    <div class="entity-item${state.activeLoc===i?' active':''}" onclick="selectLoc(${i})">
+      <div class="entity-avatar" style="border-radius:6px">${l.heroImg?`<img src="${l.heroImg}" style="border-radius:5px">`:'📍'}</div>
+      <div class="entity-info"><div class="entity-name">${l.name||'Unnamed'}</div><div class="entity-sub">${l.type||'Location'}</div></div>
+    </div>`).join('');
+}
+function addLocation(){document.getElementById('loc-name-input').value='';document.getElementById('loc-type-input').value='';openModal('loc-modal')}
+function saveLocation(){
+  const name=document.getElementById('loc-name-input').value.trim();
+  if(!name){showToast('Name required');return}
+  state.locations.push({name,type:document.getElementById('loc-type-input').value.trim(),inspo:[]});
+  closeModal('loc-modal');renderLocList();selectLoc(state.locations.length-1);debouncedSave();showToast('Added');
+}
+function selectLoc(i){state.activeLoc=i;renderLocList();renderLocDetail(i)}
+function renderLocDetail(i){
+  const l=state.locations[i];
+  const apps=state.cards.filter(c=>c.loc&&c.loc.toLowerCase().includes(l.name.toLowerCase()));
+  document.getElementById('loc-detail').innerHTML=`
+    <div class="entity-hero">
+      <div class="hero-img" onclick="triggerHeroUpload(${i},'loc')" style="width:130px;height:90px">
+        ${l.heroImg?`<img src="${l.heroImg}" style="display:block">`:`<div class="hero-placeholder"><span>📍</span><p>Add photo</p></div>`}
+        <div class="upload-overlay">Upload</div>
+      </div>
+      <div class="hero-fields">
+        <div class="field"><label>Name</label><input type="text" value="${l.name}" oninput="updateLoc(${i},'name',this.value)"></div>
+        <div class="field"><label>Type</label><input type="text" value="${l.type||''}" placeholder="Interior, City..." oninput="updateLoc(${i},'type',this.value)"></div>
+        <div class="field"><label>Time Period</label><input type="text" value="${l.period||''}" oninput="updateLoc(${i},'period',this.value)"></div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="field"><label>Description</label><textarea rows="4" oninput="updateLoc(${i},'desc',this.value)">${l.desc||''}</textarea></div>
+      <div class="field"><label>Atmosphere</label><textarea rows="4" oninput="updateLoc(${i},'vibe',this.value)">${l.vibe||''}</textarea></div>
+    </div>
+    <div class="field"><label>Significance</label><textarea rows="2" oninput="updateLoc(${i},'significance',this.value)">${l.significance||''}</textarea></div>
+    <div><div class="divider-label">Inspiration Board</div>
+      <div class="inspo-grid">
+        ${(l.inspo||[]).map((img,j)=>`<div class="inspo-cell"><img src="${img}"><button class="inspo-del" onclick="removeInspo('loc',${i},${j})">✕</button></div>`).join('')}
+        <div class="inspo-add" onclick="triggerInspoUpload(${i},'loc')">+</div>
+      </div>
+    </div>
+    ${apps.length?`<div><div class="divider-label">Scenes Here (${apps.length})</div><div class="appearances-list">${apps.map(a=>`<div class="appearance-row"><span class="app-ep">${a.ep||'—'}</span><span class="app-scene">${a.title}</span></div>`).join('')}</div></div>`:''}
+    <div style="padding-top:8px"><button class="btn btn-danger btn-sm" onclick="deleteLoc(${i})">Delete Location</button></div>
+  `;
+}
+function updateLoc(i,k,v){state.locations[i][k]=v;renderLocList();debouncedSave()}
+function deleteLoc(i){if(confirm('Delete?')){state.locations.splice(i,1);state.activeLoc=null;document.getElementById('loc-detail').innerHTML='<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No location selected</div></div>';renderLocList();debouncedSave()}}
+
+// ═══════════ IMAGE UPLOADS ═══════════
+function triggerHeroUpload(i,type){state.heroUploadTarget={i,type};document.getElementById('hero-file-input').click()}
+function handleHeroUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const{i,type}=state.heroUploadTarget;
+    if(type==='char'){state.characters[i].heroImg=ev.target.result;renderCharList();renderCharDetail(i)}
+    else{state.locations[i].heroImg=ev.target.result;renderLocList();renderLocDetail(i)}
+    debouncedSave();
+  };
+  reader.readAsDataURL(file);e.target.value='';
+}
+function triggerInspoUpload(i,type){state.inspoUploadTarget={i,type};document.getElementById('inspo-file-input').click()}
+function handleInspoUpload(e){
+  const files=Array.from(e.target.files);if(!files.length)return;
+  const{i,type}=state.inspoUploadTarget;let done=0;
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      if(type==='char'){state.characters[i].inspo.push(ev.target.result);done++;if(done===files.length){renderCharDetail(i);debouncedSave()}}
+      else{state.locations[i].inspo.push(ev.target.result);done++;if(done===files.length){renderLocDetail(i);debouncedSave()}}
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
+}
+function removeInspo(type,i,j){
+  if(type==='char'){state.characters[i].inspo.splice(j,1);renderCharDetail(i)}
+  else{state.locations[i].inspo.splice(j,1);renderLocDetail(i)}
+  debouncedSave();
+}
+
+// ═══════════ WRITING ═══════════
+function renderWritingNav(){
+  document.getElementById('scene-nav-items').innerHTML=state.writingScenes.map((s,i)=>`
+    <div class="scene-nav-item${state.activeWritingScene===i?' active':''}" onclick="selectWritingScene(${i})">
+      <div class="sni-num">Scene ${i+1}</div>
+      <div class="sni-title">${s.title||'Untitled'}</div>
+    </div>`).join('');
+}
+function addWritingScene(){
+  state.writingScenes.push({title:'',mode:state.writeMode,chars:[],locs:[],notes:''});
+  selectWritingScene(state.writingScenes.length-1);
+  debouncedSave();
+}
+function selectWritingScene(i){
+  state.activeWritingScene=i;renderWritingNav();
+  const s=state.writingScenes[i];
+  document.getElementById('ws-scene-title').value=s.title||'';
+  renderWsChars(s);renderWsLocs(s);
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('ws-scene-title').addEventListener('input',function(){
+    if(state.activeWritingScene!=null){state.writingScenes[state.activeWritingScene].title=this.value;renderWritingNav();debouncedSave()}
+  });
+});
+
+function setWriteMode(mode,btn){
+  state.writeMode=mode;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  else document.querySelectorAll('.mode-btn').forEach((b,i)=>{if(['screenplay','prose','pen'][i]===mode)b.classList.add('active')});
+  const typeArea=document.getElementById('type-area'),penArea=document.getElementById('pen-area'),typeTools=document.getElementById('type-tools');
+  if(mode==='pen'){typeArea.style.display='none';penArea.style.display='block';typeTools.style.display='none';initCanvas()}
+  else{typeArea.style.display='flex';penArea.style.display='none';typeTools.style.display=mode==='screenplay'?'flex':'none';
+    const wa=document.getElementById('writing-area');
+    if(mode==='screenplay'){wa.className='writing-area screenplay-area';if(!wa.children.length)insertScreenplayEl('heading')}
+    else{wa.className='writing-area prose-area';if(!wa.children.length)initProse()}
+  }
+}
+function insertScreenplayEl(type){
+  const wa=document.getElementById('writing-area');
+  const el=document.createElement('textarea');el.rows=1;
+  el.addEventListener('input',function(){autoGrow(this);debouncedSave()});
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();insertScreenplayEl('action')}});
+  const map={heading:'script-field scene-heading-field',action:'script-field action-field',character:'script-field character-field',dialogue:'script-field dialogue-field',paren:'script-field parenthetical-field'};
+  const ph={heading:'INT./EXT. LOCATION - DAY/NIGHT',action:'Action description...',character:'CHARACTER NAME',dialogue:'Dialogue...',paren:'(beat)'};
+  el.className=map[type];el.placeholder=ph[type];
+  wa.appendChild(el);el.focus();
+}
+function initProse(){
+  const wa=document.getElementById('writing-area');
+  const title=document.createElement('div');title.className='chapter-title';title.contentEditable=true;title.textContent='Chapter Title';
+  const editor=document.createElement('textarea');editor.className='prose-editor';editor.placeholder='Begin writing...';
+  editor.addEventListener('input',function(){autoGrow(this);debouncedSave()});
+  wa.appendChild(title);wa.appendChild(editor);editor.focus();
+}
+function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'}
+function exportTXT(){
+  const wa=document.getElementById('writing-area');
+  const text=Array.from(wa.querySelectorAll('textarea,div')).map(el=>el.value||el.textContent).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+  a.download=(state.projectName||'notebook')+'.txt';a.click();
+}
+function renderWsChars(s){
+  document.getElementById('ws-char-list').innerHTML=(s.chars||[]).map((c,i)=>`<div class="char-mention"><div class="char-dot"></div>${c}<button onclick="removeWsChar(${i})" style="background:none;border:none;color:var(--text-m);cursor:pointer;margin-left:auto">✕</button></div>`).join('');
+}
+function renderWsLocs(s){
+  document.getElementById('ws-loc-list').innerHTML=(s.locs||[]).map((l,i)=>`<div class="loc-mention"><div class="loc-dot"></div>${l}<button onclick="removeWsLoc(${i})" style="background:none;border:none;color:var(--text-m);cursor:pointer;margin-left:auto">✕</button></div>`).join('');
+}
+function tagCharacter(e){if(e.key==='Enter'){const v=e.target.value.trim();if(!v)return;const s=state.writingScenes[state.activeWritingScene];if(s&&!s.chars.includes(v)){s.chars.push(v);renderWsChars(s);debouncedSave()}e.target.value=''}}
+function tagLocation(e){if(e.key==='Enter'){const v=e.target.value.trim();if(!v)return;const s=state.writingScenes[state.activeWritingScene];if(s&&!s.locs.includes(v)){s.locs.push(v);renderWsLocs(s);debouncedSave()}e.target.value=''}}
+function removeWsChar(i){const s=state.writingScenes[state.activeWritingScene];if(s){s.chars.splice(i,1);renderWsChars(s);debouncedSave()}}
+function removeWsLoc(i){const s=state.writingScenes[state.activeWritingScene];if(s){s.locs.splice(i,1);renderWsLocs(s);debouncedSave()}}
+
+// ═══════════ PEN CANVAS ═══════════
+let isDrawing=false,ctx=null;
+function initCanvas(){
+  const canvas=document.getElementById('penCanvas'),wrap=document.getElementById('pen-area');
+  canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
+  ctx=canvas.getContext('2d');ctx.lineCap='round';ctx.lineJoin='round';
+  canvas.onpointerdown=e=>{isDrawing=true;const r=e.target.getBoundingClientRect();ctx.beginPath();ctx.moveTo(e.clientX-r.left,e.clientY-r.top);e.target.setPointerCapture(e.pointerId)};
+  canvas.onpointermove=e=>{if(!isDrawing)return;const r=e.target.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;ctx.strokeStyle=state.penColor;ctx.lineWidth=e.pointerType==='pen'?state.penSize*(e.pressure||1)*2:state.penSize;ctx.lineTo(x,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y)};
+  canvas.onpointerup=canvas.onpointerout=()=>{isDrawing=false;if(ctx)ctx.beginPath()};
+}
+function setPenSize(s,el){state.penSize=s;document.querySelectorAll('.pen-dot').forEach(d=>d.classList.remove('active-pen'));el.classList.add('active-pen')}
+function setPenColor(c,el){state.penColor=c;document.querySelectorAll('.pen-color').forEach(d=>d.classList.remove('active-color'));el.classList.add('active-color')}
+function clearCanvas(){if(ctx){const c=document.getElementById('penCanvas');ctx.clearRect(0,0,c.width,c.height)}}
+
+// ═══════════ PAPER TOGGLE ═══════════
+function togglePaperTheme(){
+  darkPaper=!darkPaper;
+  document.body.classList.toggle('dark-paper',darkPaper);
+  const btn=document.getElementById('paper-toggle-btn');
+  btn.textContent=darkPaper?'☀ Light Paper':'🌙 Dark Paper';
+  // update canvas background if in pen mode
+  if(state.writeMode==='pen'&&ctx){
+    const canvas=document.getElementById('penCanvas');
+    ctx.fillStyle=darkPaper?'#1a1a16':'#f4efe6';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+  debouncedSave();
+}
+
+// ═══════════ MODALS ═══════════
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+// ═══════════ TOAST ═══════════
+let toastTimer;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
+
+// ═══════════ PLANNING AUTOSAVE ═══════════
+document.addEventListener('input',e=>{
+  if(e.target.closest('#panel-planning'))debouncedSave();
+});
+
+// ═══════════ RESIZE ═══════════
+window.addEventListener('resize',()=>{
+  if(state.writeMode==='pen'&&ctx){
+    const canvas=document.getElementById('penCanvas'),wrap=document.getElementById('pen-area');
+    const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
+    ctx.putImageData(img,0,0);
+  }
+});
+
+// ═══════════ BOOT ═══════════
+// Kick off GAPI/GIS loading
+window.addEventListener('load',()=>{
+  const s1=document.createElement('script');
+  s1.src='https://apis.google.com/js/api.js';
+  s1.onload=()=>gapi.load('client',async()=>{
+    await gapi.client.init({apiKey:GOOGLE_API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
+    gapiReady=true;checkReady();
+  });
+  document.head.appendChild(s1);
+
+  const s2=document.createElement('script');
+  s2.src='https://accounts.google.com/gsi/client';
+  s2.onload=()=>{
+    tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:GOOGLE_CLIENT_ID,
+      scope:'https://www.googleapis.com/auth/drive.file',
+      callback:(resp)=>{
+        if(resp.error){setSyncStatus('error','Auth failed');return}
+        accessToken=resp.access_token;
+        gapi.client.setToken({access_token:accessToken});
+        onSignedIn();
+      }
+    });
+    gisReady=true;checkReady();
+  };
+  document.head.appendChild(s2);
+});
+
+renderBoard();
+</script>
+</body>
+</html>
